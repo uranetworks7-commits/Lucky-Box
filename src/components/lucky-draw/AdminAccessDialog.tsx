@@ -19,7 +19,7 @@ interface AdminAccessDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const SECURITY_KEY = 'Utkarsh225';
+const SECURITY_KEY = 'lucky';
 
 export function AdminAccessDialog({ open, onOpenChange }: AdminAccessDialogProps) {
   const [key, setKey] = useState('');
