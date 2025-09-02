@@ -6,13 +6,14 @@ import { onValue, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Eye, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, Eye, Pencil, Trash2, MoreHorizontal } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { DeleteEventDialog } from '@/components/lucky-draw/DeleteEventDialog';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState<LuckyEvent[]>([]);
@@ -99,23 +100,30 @@ export default function AdminDashboard() {
                     </TableCell>
                     <TableCell>{format(new Date(event.startTime), 'MMM d, yyyy')}</TableCell>
                     <TableCell>{getEventStatus(event)}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                        <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/admin/event/${event.id}`}>
-                                <Eye className="h-4 w-4" />
-                                <span className="sr-only">View Details</span>
-                            </Link>
-                        </Button>
-                         <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/admin/event/${event.id}`}>
-                                <Pencil className="h-4 w-4" />
-                                <span className="sr-only">Edit</span>
-                            </Link>
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(event)} className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Delete</span>
-                        </Button>
+                    <TableCell className="text-right">
+                       <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/event/${event.id}`} className="flex items-center">
+                                <Eye className="mr-2 h-4 w-4" /> View
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/event/${event.id}`} className="flex items-center">
+                                <Pencil className="mr-2 h-4 w-4" /> Edit
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeleteClick(event)} className="text-destructive flex items-center">
+                               <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))

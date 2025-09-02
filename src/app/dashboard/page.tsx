@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { onValue, ref } from 'firebase/database';
@@ -17,8 +17,7 @@ import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
-  const [upcomingEvents, setUpcomingEvents] = useState<LuckyEvent[]>([]);
-  const [pastEvents, setPastEvents] = useState<LuckyEvent[]>([]);
+  const [events, setEvents] = useState<LuckyEvent[]>([]);
   const [userEventStatus, setUserEventStatus] = useState<Record<string, 'won' | 'lost' | 'missed' | 'registered'>>({});
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
   const [adminClickCount, setAdminClickCount] = useState(0);
@@ -34,47 +33,57 @@ export default function DashboardPage() {
       setUsername(storedUsername);
     }
   }, [router]);
+  
+  const updateEvents = useCallback((data: any) => {
+    if (data) {
+      const now = Date.now();
+      const allEvents: LuckyEvent[] = Object.entries(data).map(([id, event]) => ({
+        id,
+        ...(event as Omit<LuckyEvent, 'id'>),
+      })).sort((a, b) => a.startTime - b.startTime);
+      setEvents(allEvents);
+      
+      if(username){
+          const status: Record<string, 'won' | 'lost' | 'missed' | 'registered'> = {};
+          allEvents.forEach(event => {
+              const isRegistered = Object.values(event.registeredUsers || {}).includes(username);
+              const isWinner = !!event.winners?.some(winnerId => (event.registeredUsers || {})[winnerId] === username);
+
+              if (now > event.resultTime) {
+                  if (isRegistered) {
+                      status[event.id] = isWinner ? 'won' : 'lost';
+                  } else {
+                      status[event.id] = 'missed';
+                  }
+              } else if (isRegistered) {
+                  status[event.id] = 'registered';
+              }
+          });
+          setUserEventStatus(status);
+      }
+    }
+  }, [username]);
 
   useEffect(() => {
     if (!username) return;
 
     const eventsRef = ref(db, 'events');
     const unsubscribe = onValue(eventsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const now = Date.now();
-        const allEvents: LuckyEvent[] = Object.entries(data).map(([id, event]) => ({
-          id,
-          ...(event as Omit<LuckyEvent, 'id'>),
-        })).sort((a, b) => a.startTime - b.startTime);
-
-        const upcomingAndLive = allEvents.filter(e => e.resultTime > now);
-        setUpcomingEvents(upcomingAndLive);
-
-        const endedEvents = allEvents.filter(e => e.resultTime <= now).sort((a, b) => b.resultTime - a.resultTime);
-        setPastEvents(endedEvents);
-        
-        const status: Record<string, 'won' | 'lost' | 'missed' | 'registered'> = {};
-        allEvents.forEach(event => {
-            const isRegistered = Object.values(event.registeredUsers || {}).includes(username);
-            const isWinner = !!event.winners?.some(winnerId => (event.registeredUsers || {})[winnerId] === username);
-
-            if (now > event.resultTime) {
-                if (isRegistered) {
-                    status[event.id] = isWinner ? 'won' : 'lost';
-                } else {
-                    status[event.id] = 'missed';
-                }
-            } else if (isRegistered) {
-                status[event.id] = 'registered';
-            }
-        });
-        setUserEventStatus(status);
-      }
+      updateEvents(snapshot.val());
     });
+    
+    // Set up an interval to refresh the event state to check for live events
+    const interval = setInterval(() => {
+      onValue(eventsRef, (snapshot) => {
+         updateEvents(snapshot.val());
+      }, { onlyOnce: true });
+    }, 1000);
 
-    return () => unsubscribe();
-  }, [username]);
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    }
+  }, [username, updateEvents]);
   
   const handleAdminAccessClick = () => {
     const now = Date.now();
@@ -108,6 +117,10 @@ export default function DashboardPage() {
         default: return null;
     }
   }
+
+  const now = Date.now();
+  const upcomingEvents = events.filter(e => e.resultTime > now);
+  const pastEvents = events.filter(e => e.resultTime <= now).sort((a, b) => b.resultTime - a.resultTime);
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')" }}>
@@ -147,19 +160,19 @@ export default function DashboardPage() {
                             </CardTitle>
                           </CardHeader>
                           <CardContent className="space-y-3 p-4 pt-0 text-center">
-                            {Date.now() < event.startTime ? (
+                            {now < event.startTime ? (
                               <div className="space-y-1">
                                 <Badge variant="outline" className="border-accent text-accent">Upcoming Event</Badge>
                                 <p className="text-sm text-white/80">Starts: {format(new Date(event.startTime), 'Pp')}</p>
                               </div>
-                            ) : Date.now() <= event.endTime ? (
+                            ) : now <= event.endTime ? (
                                <Badge className="bg-red-500 hover:bg-red-600">Live Now!</Badge>
                             ) : (
                               <Badge variant="secondary">Registration Closed</Badge>
                             )}
                           </CardContent>
                           <div className="p-4 pt-0">
-                                {Date.now() >= event.startTime && Date.now() <= event.endTime && (
+                                {now >= event.startTime && now <= event.endTime && (
                                     <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">
                                         Join Now <ArrowRight className="ml-2 h-5 w-5" />
                                     </Button>
