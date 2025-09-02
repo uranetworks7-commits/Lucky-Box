@@ -12,6 +12,7 @@ import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box } from 'lucide-rea
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
@@ -19,7 +20,10 @@ export default function DashboardPage() {
   const [pastEvents, setPastEvents] = useState<LuckyEvent[]>([]);
   const [userEventStatus, setUserEventStatus] = useState<Record<string, 'won' | 'lost' | 'missed' | 'registered'>>({});
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
+  const [adminClickCount, setAdminClickCount] = useState(0);
+  const [lastClickTime, setLastClickTime] = useState(0);
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -70,6 +74,23 @@ export default function DashboardPage() {
 
     return () => unsubscribe();
   }, [username]);
+  
+  const handleAdminAccessClick = () => {
+    const now = Date.now();
+    // If clicks are more than 1 second apart, reset the counter.
+    if (now - lastClickTime > 1000) {
+      setAdminClickCount(1);
+      toast({ title: 'Feature not available', description: 'This feature is restricted.' });
+    } else {
+      const newClickCount = adminClickCount + 1;
+      setAdminClickCount(newClickCount);
+      if (newClickCount >= 3) {
+        setIsAdminDialogOpen(true);
+        setAdminClickCount(0); // Reset after opening
+      }
+    }
+    setLastClickTime(now);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('username');
@@ -187,7 +208,7 @@ export default function DashboardPage() {
         </main>
         
         <footer className="fixed bottom-4 right-4 z-20">
-            <Button size="icon" className="rounded-full h-14 w-14 bg-accent text-accent-foreground hover:bg-yellow-400 shadow-lg" onClick={() => setIsAdminDialogOpen(true)}>
+            <Button size="icon" className="rounded-full h-14 w-14 bg-accent text-accent-foreground hover:bg-yellow-400 shadow-lg" onClick={handleAdminAccessClick}>
                 <Crown className="h-7 w-7" />
             </Button>
         </footer>
