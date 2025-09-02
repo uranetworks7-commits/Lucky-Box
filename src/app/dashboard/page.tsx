@@ -35,7 +35,7 @@ export default function DashboardPage() {
     }
   }, [router]);
   
-  const updateEvents = useCallback((data: any) => {
+  const updateEvents = useCallback((data: any, currentUsername: string | null) => {
     if (data) {
       const now = Date.now();
       const allEvents: LuckyEvent[] = Object.entries(data).map(([id, event]) => ({
@@ -44,23 +44,17 @@ export default function DashboardPage() {
       })).sort((a, b) => a.startTime - b.startTime);
       setEvents(allEvents);
       
-      if(username){
+      if(currentUsername){
           const status: Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'pending'> = {};
           allEvents.forEach(event => {
-              const userEntry = Object.entries(event.registeredUsers || {}).find(([_, name]) => name === username);
+              const userEntry = Object.entries(event.registeredUsers || {}).find(([_, name]) => name === currentUsername);
               const userId = userEntry ? userEntry[0] : null;
               const isRegistered = !!userId;
 
-              if (event.winners) { // Winners have been determined
+              if (now > event.resultTime) { // Result time has passed
                   const isWinner = !!(userId && event.winners?.includes(userId));
                   if (isRegistered) {
                       status[event.id] = isWinner ? 'won' : 'lost';
-                  } else {
-                      status[event.id] = 'missed';
-                  }
-              } else if (now > event.resultTime) { // Result time passed, but winners not set (e.g. no participants)
-                  if (isRegistered) {
-                      status[event.id] = 'lost';
                   } else {
                       status[event.id] = 'missed';
                   }
@@ -73,20 +67,20 @@ export default function DashboardPage() {
           setUserEventStatus(status);
       }
     }
-  }, [username]);
+  }, []);
 
   useEffect(() => {
     if (!username) return;
 
     const eventsRef = ref(db, 'events');
     const unsubscribe = onValue(eventsRef, (snapshot) => {
-      updateEvents(snapshot.val());
+      updateEvents(snapshot.val(), username);
     });
     
     // Set up an interval to refresh the event state to check for live events
     const interval = setInterval(() => {
       onValue(eventsRef, (snapshot) => {
-         updateEvents(snapshot.val());
+         updateEvents(snapshot.val(), username);
       }, { onlyOnce: true });
     }, 1000);
 
