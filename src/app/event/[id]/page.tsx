@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { onValue, ref, set, update } from 'firebase/database';
+import { onValue, ref, push, set } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,7 +52,7 @@ export default function EventPage() {
         
         updateStatus(eventData);
         
-        if (username && eventData.registeredUsers?.[username]) {
+        if (username && Object.values(eventData.registeredUsers || {}).includes(username)) {
             setRegistrationStatus('registered');
         }
 
@@ -68,9 +68,9 @@ export default function EventPage() {
     setRegistrationStatus('registering');
 
     try {
-        const userRef = ref(db, `events/${event.id}/registeredUsers/${username}`);
-        await set(userRef, username);
-        // Using `update` can be safer for nested data, but `set` is fine here.
+        const usersRef = ref(db, `events/${event.id}/registeredUsers`);
+        const newUserRef = push(usersRef);
+        await set(newUserRef, username);
     } catch (error) {
         console.error(error);
         toast({ title: 'Error', description: 'Registration failed. Please try again.', variant: 'destructive' });

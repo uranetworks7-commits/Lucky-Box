@@ -7,7 +7,7 @@ export interface LuckyEvent {
   codes: string[];
   selectionMode: 'custom' | 'random';
   winnerSlots?: number;
-  registeredUsers?: Record<string, string>; // userId: username
-  winners?: string[]; // array of userIds
-  assignedCodes?: Record<string, string>; // userId: code
+  registeredUsers?: Record<string, string>; // firebase pushId: username
+  winners?: string[]; // array of firebase pushIds
+  assignedCodes?: Record<string, string>; // firebase pushId: code
 }

@@ -77,8 +77,10 @@ export default function ResultPage() {
       );
     }
     
-    const isRegistered = !!event.registeredUsers?.[username];
-    const isWinner = !!event.winners?.includes(username);
+    const winnerObject = Object.entries(event.registeredUsers || {}).find(([id, name]) => name === username);
+    const isRegistered = !!winnerObject;
+    const userId = winnerObject ? winnerObject[0] : null;
+    const isWinner = !!(userId && event.winners?.includes(userId));
 
     if (!isRegistered) {
       return (
@@ -90,8 +92,8 @@ export default function ResultPage() {
       );
     }
 
-    if (isWinner) {
-      const code = event.assignedCodes?.[username];
+    if (isWinner && userId) {
+      const code = event.assignedCodes?.[userId];
       return (
         <div className="text-center space-y-4">
           <PartyPopper className="h-16 w-16 text-green-500 mx-auto" />
