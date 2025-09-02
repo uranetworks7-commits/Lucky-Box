@@ -15,9 +15,15 @@ export async function determineWinners(eventId: string): Promise<LuckyEvent> {
     throw new Error('Event not found');
   }
   
+  // If winners are already determined, just return the data.
   if (eventData.winners) {
-    // Winners already determined
     return eventData;
+  }
+
+  const now = Date.now();
+  // If result time has not been reached, return without determining winners.
+  if (now < eventData.resultTime) {
+      return eventData; 
   }
   
   const registeredUsers = eventData.registeredUsers ? Object.keys(eventData.registeredUsers) : [];

@@ -1,15 +1,17 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, PartyPopper, Frown, AlertTriangle } from 'lucide-react';
+import { Loader2, Copy, PartyPopper, Frown, AlertTriangle, Clock } from 'lucide-react';
 import type { LuckyEvent } from '@/types';
 import { determineWinners } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { VideoPlayer } from '@/components/lucky-draw/VideoPlayer';
+import { Countdown } from '@/components/lucky-draw/Countdown';
 
 export default function ResultPage() {
   const params = useParams();
@@ -21,6 +23,7 @@ export default function ResultPage() {
   const [event, setEvent] = useState<LuckyEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
+  const [isResultReady, setIsResultReady] = useState(false);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -34,28 +37,57 @@ export default function ResultPage() {
   useEffect(() => {
     if (!eventId || !username) return;
 
-    const sessionKey = `playedVideo_${eventId}`;
-    const hasPlayed = sessionStorage.getItem(sessionKey) === 'true';
-    if (!hasPlayed) {
-        setShowVideo(true);
-    }
+    const fetchResults = () => {
+      determineWinners(eventId)
+        .then((eventData) => {
+          setEvent(eventData);
+          if (eventData.winners) {
+            const sessionKey = `playedVideo_${eventId}`;
+            const hasPlayed = sessionStorage.getItem(sessionKey) === 'true';
+            if (!hasPlayed) {
+                setShowVideo(true);
+            }
+            setIsResultReady(true);
+          } else if (Date.now() > eventData.resultTime) {
+            // This case handles if the winner determination failed on the server
+            // or if there were no participants.
+            setIsResultReady(true);
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          toast({ title: 'Error', description: 'Could not fetch event results.', variant: 'destructive' });
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };
 
-    determineWinners(eventId)
-      .then((eventData) => {
-        setEvent(eventData);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast({ title: 'Error', description: 'Could not fetch event results.', variant: 'destructive' });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [eventId, username, toast]);
+    fetchResults();
+    
+    // Set up an interval to check again when the results are supposed to be ready.
+    const now = Date.now();
+    if (event && now < event.resultTime) {
+      const timeToWait = event.resultTime - now;
+      const timer = setTimeout(fetchResults, timeToWait + 1000); // add 1s buffer
+      return () => clearTimeout(timer);
+    }
+  }, [eventId, username, toast, event]);
 
   const onVideoEnd = () => {
     sessionStorage.setItem(`playedVideo_${eventId}`, 'true');
     setShowVideo(false);
+  }
+  
+  const onCountdownEnd = () => {
+    setLoading(true);
+    // Refetch results
+     determineWinners(eventId)
+      .then((eventData) => {
+        setEvent(eventData);
+        setIsResultReady(!!eventData.winners);
+      })
+      .finally(() => setLoading(false));
   }
 
   const handleCopy = (code: string) => {
@@ -73,6 +105,18 @@ export default function ResultPage() {
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
           <p className="text-muted-foreground">Calculating results...</p>
+        </div>
+      );
+    }
+    
+    // Results are not ready yet, show countdown
+    if (!isResultReady) {
+       return (
+        <div className="text-center space-y-4">
+            <Clock className="h-16 w-16 text-primary mx-auto" />
+            <h3 className="text-2xl font-bold">Results are being finalized!</h3>
+            <p className="text-muted-foreground">Come back in a moment. The winners will be announced in:</p>
+            <Countdown to={event.resultTime} onEnd={onCountdownEnd} />
         </div>
       );
     }

@@ -49,14 +49,22 @@ export default function DashboardPage() {
           allEvents.forEach(event => {
               const isRegistered = Object.values(event.registeredUsers || {}).includes(username);
 
-              if (now > event.resultTime) {
+              if (event.winners) { // Winners have been determined
                   const isWinner = !!event.winners?.some(winnerId => (event.registeredUsers || {})[winnerId] === username);
                   if (isRegistered) {
                       status[event.id] = isWinner ? 'won' : 'lost';
                   } else {
                       status[event.id] = 'missed';
                   }
-              } else if (isRegistered) {
+              } else if (now > event.resultTime) { // Result time passed, but winners not set (e.g. no participants)
+                  if (isRegistered) {
+                      status[event.id] = 'lost';
+                  } else {
+                      status[event.id] = 'missed';
+                  }
+              } else if (now > event.endTime) { // Event ended, waiting for results
+                  status[event.id] = 'pending';
+              } else if (isRegistered) { // Event is live or upcoming
                   status[event.id] = 'registered';
               }
           });
