@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ref, push, set } from 'firebase/database';
 import { db } from '@/lib/firebase';
@@ -28,6 +29,13 @@ export default function CreateEventPage() {
 
   const router = useRouter();
   const { toast } = useToast();
+  
+  useEffect(() => {
+    if (selectionMode === 'custom') {
+      const activeCodes = codes.filter(c => c.trim() !== '').length;
+      setWinnerSlots(activeCodes > 0 ? activeCodes : 1);
+    }
+  }, [codes, selectionMode]);
 
   const handleCodeChange = (index: number, value: string) => {
     const newCodes = [...codes];
@@ -120,7 +128,6 @@ export default function CreateEventPage() {
                     value={code}
                     onChange={(e) => handleCodeChange(index, e.target.value)}
                     placeholder={`Code ${index + 1}`}
-                    required
                   />
                   {codes.length > 1 && (
                     <Button type="button" variant="outline" size="icon" onClick={() => removeCodeField(index)}>
@@ -138,7 +145,7 @@ export default function CreateEventPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
             <div className="space-y-2">
               <Label htmlFor="selection-mode">Selection Mode</Label>
-              <Select onValueChange={(value: 'custom' | 'random') => setSelectionMode(value)} required>
+              <Select onValueChange={(value: 'custom' | 'random') => setSelectionMode(value)} >
                 <SelectTrigger id="selection-mode">
                   <SelectValue placeholder="Select a mode" />
                 </SelectTrigger>
@@ -151,7 +158,7 @@ export default function CreateEventPage() {
             {selectionMode === 'custom' && (
               <div className="space-y-2">
                 <Label htmlFor="winner-slots">Winner Slots</Label>
-                <Input id="winner-slots" type="number" min="1" value={winnerSlots} onChange={(e) => setWinnerSlots(Number(e.target.value))} required />
+                <Input id="winner-slots" type="number" value={winnerSlots} readOnly className="bg-muted" />
               </div>
             )}
           </div>
