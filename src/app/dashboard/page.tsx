@@ -8,11 +8,12 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
@@ -101,9 +102,9 @@ export default function DashboardPage() {
   const getEventStatusBadge = (eventId: string) => {
     const status = userEventStatus[eventId];
     switch (status) {
-        case 'won': return <Badge variant="default" className="bg-green-500">Won</Badge>;
+        case 'won': return <Badge variant="default" className="bg-green-500 hover:bg-green-600">Won</Badge>;
         case 'lost': return <Badge variant="destructive">Lost</Badge>;
-        case 'missed': return <Badge variant="destructive" className="bg-red-500 text-white">Missed</Badge>;
+        case 'missed': return <Badge variant="destructive" className="bg-red-500 text-white hover:bg-red-600">Missed</Badge>;
         default: return null;
     }
   }
@@ -132,27 +133,34 @@ export default function DashboardPage() {
                     <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 flex items-center justify-center gap-3">
                         <Gift className="h-10 w-10 text-accent" /> Lucky Box
                     </h2>
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-6 md:grid-cols-2">
                     {upcomingEvents.map(event => (
-                      <Link href={`/event/${event.id}`} key={event.id}>
-                        <Card className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all cursor-pointer h-full flex flex-col justify-center">
-                          <CardHeader>
+                      <Link href={`/event/${event.id}`} key={event.id} className="group">
+                        <Card className={cn(
+                            "w-full bg-black/40 border-white/20 text-white transition-all duration-300 h-full flex flex-col justify-between p-4",
+                            "hover:bg-black/60 hover:border-accent hover:shadow-2xl hover:shadow-accent/20",
+                            event.isHighlighted && "border-accent shadow-accent/20 shadow-lg"
+                        )}>
+                          <CardHeader className="p-2">
                             <CardTitle className="flex items-center justify-center gap-2 text-2xl">
                               {event.name}
                             </CardTitle>
                           </CardHeader>
-                          <CardContent className="space-y-2">
+                          <CardContent className="space-y-3 p-2 text-center">
                             {Date.now() < event.startTime ? (
-                              <>
-                                <Badge variant="outline">Upcoming Event</Badge>
-                                <p className="text-sm">Starts: {format(new Date(event.startTime), 'Pp')}</p>
-                              </>
+                              <div className="space-y-1">
+                                <Badge variant="outline" className="border-accent text-accent">Upcoming Event</Badge>
+                                <p className="text-sm text-white/80">Starts: {format(new Date(event.startTime), 'Pp')}</p>
+                              </div>
                             ) : Date.now() <= event.endTime ? (
-                              <Badge>Live Now!</Badge>
+                               <Badge className="bg-red-500 hover:bg-red-600">Live Now!</Badge>
                             ) : (
                               <Badge variant="secondary">Registration Closed</Badge>
                             )}
                           </CardContent>
+                          <div className="flex items-center justify-center text-accent font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                Join Now <ArrowRight className="ml-2 h-4 w-4" />
+                          </div>
                         </Card>
                       </Link>
                     ))}
@@ -175,22 +183,22 @@ export default function DashboardPage() {
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 flex items-center gap-2">
               <History className="h-7 w-7"/> Past Events
             </h2>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2">
               {pastEvents.length > 0 ? (
                 pastEvents.map(event => (
-                  <Card key={event.id} className="bg-white/5 border-white/10 text-white">
-                    <CardHeader>
+                  <Card key={event.id} className="bg-black/30 border-white/10 text-white backdrop-blur-sm">
+                    <CardHeader className="p-4">
                       <CardTitle className="flex justify-between items-center">
                         {event.name}
                         {getEventStatusBadge(event.id)}
                       </CardTitle>
-                      <CardDescription className="text-white/70">
+                      <CardDescription className="text-white/60 pt-1">
                         Ended on: {format(new Date(event.resultTime), 'Pp')}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-4 pt-0">
                        <Link href={`/result/${event.id}`}>
-                          <Button className="w-full" variant="secondary">
+                          <Button className="w-full bg-white/10 hover:bg-white/20 border border-white/20">
                             <Eye className="mr-2 h-4 w-4"/>
                             View Result
                           </Button>
@@ -217,3 +225,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
