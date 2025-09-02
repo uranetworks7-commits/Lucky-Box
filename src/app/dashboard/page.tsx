@@ -130,6 +130,9 @@ export default function DashboardPage() {
               <Box className="h-8 w-8 text-accent" /> URA BOX Pro
           </h1>
           <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={handleAdminAccessClick} className="text-white hover:bg-white/10 hover:text-white">
+                <Crown className="h-5 w-5" />
+              </Button>
               <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
                 <User /> {username}
               </h2>
@@ -232,11 +235,6 @@ export default function DashboardPage() {
           </section>
         </main>
         
-        <footer className="fixed bottom-4 right-4 z-20">
-            <Button size="icon" className="rounded-full h-14 w-14 bg-accent text-accent-foreground hover:bg-yellow-400 shadow-lg" onClick={handleAdminAccessClick}>
-                <Crown className="h-7 w-7" />
-            </Button>
-        </footer>
         <AdminAccessDialog open={isAdminDialogOpen} onOpenChange={setIsAdminDialogOpen} />
       </div>
     </div>
