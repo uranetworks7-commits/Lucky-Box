@@ -8,17 +8,11 @@ import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Users, Trophy, Trash2, MoreHorizontal } from 'lucide-react';
+import { PlusCircle, Users, Trophy, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { DeleteEventDialog } from '@/components/lucky-draw/DeleteEventDialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState<LuckyEvent[]>([]);
@@ -73,7 +67,6 @@ export default function AdminDashboard() {
       <Card>
         <CardHeader>
           <CardTitle>All Events</CardTitle>
-          <CardDescription>View, manage, and track all your events here.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -81,7 +74,7 @@ export default function AdminDashboard() {
               <TableRow>
                 <TableHead>Event Name</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Start Time</TableHead>
+                <TableHead>Date</TableHead>
                 <TableHead className="text-center">Registered</TableHead>
                 <TableHead className="text-center">Winners</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -104,7 +97,7 @@ export default function AdminDashboard() {
                       </Link>
                     </TableCell>
                     <TableCell>{getStatus(event)}</TableCell>
-                    <TableCell>{format(new Date(event.startTime), 'MMM d, yyyy h:mm a')}</TableCell>
+                    <TableCell>{format(new Date(event.startTime), 'MMM d, yyyy')}</TableCell>
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1">
                         <Users className="h-4 w-4 text-muted-foreground" />
@@ -118,20 +111,10 @@ export default function AdminDashboard() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">More actions</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleDeleteClick(event)} className="text-destructive">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(event)} className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
+                        </Button>
                     </TableCell>
                   </TableRow>
                 ))
