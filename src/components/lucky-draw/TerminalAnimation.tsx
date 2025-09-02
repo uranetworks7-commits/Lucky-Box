@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
-const lines = [
+const successLines = [
   'Initializing registration sequence...',
   'Connecting to event server... [OK]',
   'Authenticating user credentials...',
@@ -13,10 +14,22 @@ const lines = [
   'Registration successful!',
 ];
 
+const failureLines = [
+    'Initializing registration sequence...',
+    'Connecting to event server... [OK]',
+    'Authenticating user credentials...',
+    'Encrypting session... [DONE]',
+    'Submitting registration ticket...',
+    'Awaiting confirmation...',
+    'Server response: 400 Bad Request',
+    'Registration Failed: Deadline passed.',
+];
+
 const TOTAL_DURATION = 4000; // 4 seconds
 
-export function TerminalAnimation({ onComplete }: { onComplete: () => void }) {
+export function TerminalAnimation({ onComplete, success = true }: { onComplete: () => void, success?: boolean }) {
   const [visibleLines, setVisibleLines] = useState<string[]>([]);
+  const lines = success ? successLines : failureLines;
   
   useEffect(() => {
     let i = 0;
@@ -32,18 +45,20 @@ export function TerminalAnimation({ onComplete }: { onComplete: () => void }) {
     }, intervalDelay);
 
     return () => clearInterval(interval);
-  }, [onComplete]);
+  }, [onComplete, lines]);
+
+  const isErrorLine = (line: string) => !success && (line.includes('Failed') || line.includes('400'));
 
   return (
-    <div className="bg-gray-900 text-green-400 font-mono text-sm p-4 rounded-lg h-64 overflow-y-auto">
+    <div className={cn("bg-gray-900 font-mono text-sm p-4 rounded-lg h-64 overflow-y-auto", success ? "text-green-400" : "text-red-400")}>
       {visibleLines.map((line, index) => (
-        <div key={index} className="whitespace-pre-wrap">
+        <div key={index} className={cn("whitespace-pre-wrap", isErrorLine(line) ? "text-red-500" : "text-green-400")}>
           <span className="text-gray-500 mr-2">&gt;</span>{line}
         </div>
       ))}
        <div className="whitespace-pre-wrap">
           <span className="text-gray-500 mr-2">&gt;</span>
-          <span className="animate-pulse">_</span>
+          <span className={cn("animate-pulse", success ? "text-green-400" : "text-red-400")}>_</span>
         </div>
     </div>
   );

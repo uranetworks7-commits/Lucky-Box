@@ -28,6 +28,7 @@ export default function EventPage() {
   const [eventStatus, setEventStatus] = useState<EventStatus>('loading');
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus>('unregistered');
   const [showResultsLink, setShowResultsLink] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(true);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -80,11 +81,24 @@ export default function EventPage() {
   
   const handleRegister = async () => {
     if (!username || !event || registrationStatus !== 'unregistered') return;
+    const now = Date.now();
+    if (now > event.endTime) {
+        setRegistrationSuccess(false);
+    } else {
+        setRegistrationSuccess(true);
+    }
     setRegistrationStatus('animating'); // Start animation immediately
   };
 
   const handleAnimationComplete = async () => {
       if (!username || !event) return;
+      
+      if (!registrationSuccess) {
+          toast({ title: 'Registration Failed', description: 'The registration period for this event has ended.', variant: 'destructive' });
+          setRegistrationStatus('unregistered');
+          return;
+      }
+
       try {
           const usersRef = ref(db, `events/${event.id}/registeredUsers`);
           const newUserRef = push(usersRef);
@@ -112,7 +126,7 @@ export default function EventPage() {
     }
 
     if(registrationStatus === 'animating'){
-        return <TerminalAnimation onComplete={handleAnimationComplete} />;
+        return <TerminalAnimation onComplete={handleAnimationComplete} success={registrationSuccess} />;
     }
     
     const resultsContent = (
@@ -189,7 +203,7 @@ export default function EventPage() {
         <Button asChild variant="ghost" className="absolute top-4 left-4">
             <Link href="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" />Back</Link>
         </Button>
-        <CardHeader className="text-center pt-12 pb-2">
+        <CardHeader className="text-center pt-12">
           <CardTitle className="text-3xl font-bold">{event?.name || 'Lucky Draw'}</CardTitle>
           <CardDescription>
             {event && (eventStatus === 'live' || eventStatus === 'upcoming') && `Registration ends: ${format(new Date(event.endTime), 'Pp')}`}
