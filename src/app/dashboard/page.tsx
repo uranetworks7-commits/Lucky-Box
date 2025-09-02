@@ -77,10 +77,6 @@ export default function DashboardPage() {
     router.push('/');
   };
 
-  if (!username) {
-    return <div className="flex h-screen items-center justify-center bg-background"><p>Loading...</p></div>;
-  }
-
   const getEventStatusBadge = (eventId: string) => {
     const status = userEventStatus[eventId];
     switch (status) {
