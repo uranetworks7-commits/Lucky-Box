@@ -66,7 +66,9 @@ export default function EventPage() {
                     setRegistrationStatus('registered');
                 }
             } else {
-                setRegistrationStatus('unregistered');
+                 if(registrationStatus !== 'animating') {
+                    setRegistrationStatus('unregistered');
+                 }
             }
         }
       } else {
@@ -79,21 +81,22 @@ export default function EventPage() {
   const handleRegister = async () => {
     if (!username || !event || registrationStatus !== 'unregistered') return;
     setRegistrationStatus('animating'); // Start animation immediately
-
-    setTimeout(async () => {
-        try {
-            const usersRef = ref(db, `events/${event.id}/registeredUsers`);
-            const newUserRef = push(usersRef);
-            await set(newUserRef, username);
-            toast({ title: 'Success!', description: 'You have been successfully registered for the event.' });
-            setRegistrationStatus('registered');
-        } catch (error) {
-            console.error(error);
-            toast({ title: 'Error', description: 'Registration failed. Please try again.', variant: 'destructive' });
-            setRegistrationStatus('unregistered');
-        }
-    }, 4000); // The duration of the animation
   };
+
+  const handleAnimationComplete = async () => {
+      if (!username || !event) return;
+      try {
+          const usersRef = ref(db, `events/${event.id}/registeredUsers`);
+          const newUserRef = push(usersRef);
+          await set(newUserRef, username);
+          toast({ title: 'Success!', description: 'You have been successfully registered for the event.' });
+          setRegistrationStatus('registered');
+      } catch (error) {
+          console.error(error);
+          toast({ title: 'Error', description: 'Registration failed. Please try again.', variant: 'destructive' });
+          setRegistrationStatus('unregistered');
+      }
+  }
 
   const onCountdownEnd = () => {
     updateStatus(event);
@@ -109,7 +112,7 @@ export default function EventPage() {
     }
 
     if(registrationStatus === 'animating'){
-        return <TerminalAnimation onComplete={() => {}} />;
+        return <TerminalAnimation onComplete={handleAnimationComplete} />;
     }
     
     const resultsContent = (
@@ -141,7 +144,10 @@ export default function EventPage() {
       return (
         <div className="flex flex-col items-center justify-center space-y-4">
             <p className="text-lg font-semibold text-primary">The event is now live!</p>
-            <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 animate-pulse">Register Now</Button>
+            <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 animate-pulse">
+                <Gift className="mr-2 h-5 w-5"/>
+                Register Now
+            </Button>
         </div>
       );
     }

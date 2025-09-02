@@ -159,9 +159,11 @@ export default function DashboardPage() {
                             )}
                           </CardContent>
                           <div className="p-4 pt-0">
-                                <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">
-                                    Join Now <ArrowRight className="ml-2 h-5 w-5" />
-                                </Button>
+                                {Date.now() >= event.startTime && Date.now() <= event.endTime && (
+                                    <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">
+                                        Join Now <ArrowRight className="ml-2 h-5 w-5" />
+                                    </Button>
+                                )}
                           </div>
                         </Card>
                       </Link>
