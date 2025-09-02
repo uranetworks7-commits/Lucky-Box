@@ -198,7 +198,7 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                        <Link href={`/result/${event.id}`}>
-                          <Button className="w-full bg-white/10 hover:bg-white/20 border border-white/20">
+                          <Button className="w-full bg-white/10 hover:bg-white/20 border border-white/20 shadow-lg shadow-blue-500/30 hover:shadow-blue-400/50 transition-shadow duration-300">
                             <Eye className="mr-2 h-4 w-4"/>
                             View Result
                           </Button>
@@ -225,5 +225,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
