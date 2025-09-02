@@ -47,17 +47,17 @@ export function TerminalAnimation({ onComplete, success = true }: { onComplete: 
     return () => clearInterval(interval);
   }, [onComplete, lines]);
 
-  const isErrorLine = (line: string) => !success && (line.includes('Failed') || line.includes('400'));
+  const isErrorLine = (line: string) => !success && line && (line.includes('Failed') || line.includes('400'));
 
   return (
     <div className={cn("bg-gray-900 font-mono text-sm p-4 rounded-lg h-64 overflow-y-auto", success ? "text-green-400" : "text-red-400")}>
       {visibleLines.map((line, index) => (
         <div key={index} className={cn("whitespace-pre-wrap", isErrorLine(line) ? "text-red-500" : "text-green-400")}>
-          <span className="text-gray-500 mr-2">&gt;</span>{line}
+          <span className="text-gray-500 mr-2">></span>{line}
         </div>
       ))}
        <div className="whitespace-pre-wrap">
-          <span className="text-gray-500 mr-2">&gt;</span>
+          <span className="text-gray-500 mr-2">></span>
           <span className={cn("animate-pulse", success ? "text-green-400" : "text-red-400")}>_</span>
         </div>
     </div>
