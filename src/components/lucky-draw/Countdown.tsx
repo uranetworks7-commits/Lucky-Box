@@ -29,14 +29,14 @@ export function Countdown({ to, onEnd }: { to: number; onEnd: () => void }) {
   }, [to, onEnd]);
 
   const TimeBlock = ({ value, label }: { value: number; label: string }) => (
-    <div className="flex flex-col items-center justify-center bg-primary/20 p-4 rounded-lg w-24">
-      <span className="text-4xl font-bold text-primary">{String(value).padStart(2, '0')}</span>
-      <span className="text-sm text-primary/80 uppercase">{label}</span>
+    <div className="flex flex-col items-center justify-center bg-primary/20 p-2 rounded-lg w-20">
+      <span className="text-3xl font-bold text-primary">{String(value).padStart(2, '0')}</span>
+      <span className="text-xs text-primary/80 uppercase">{label}</span>
     </div>
   );
 
   return (
-    <div className="flex justify-center gap-4">
+    <div className="flex justify-center gap-2">
       <TimeBlock value={timeLeft.days} label="Days" />
       <TimeBlock value={timeLeft.hours} label="Hours" />
       <TimeBlock value={timeLeft.minutes} label="Minutes" />
