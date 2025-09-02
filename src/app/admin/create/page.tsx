@@ -7,20 +7,19 @@ import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import type { LuckyEvent } from '@/types';
 import { Switch } from '@/components/ui/switch';
-import { Sparkles } from 'lucide-react';
+import { PlusCircle, Sparkles, Trash2 } from 'lucide-react';
 
 export default function CreateEventPage() {
   const [eventName, setEventName] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [resultTime, setResultTime] = useState('');
-  const [codes, setCodes] = useState('');
+  const [codes, setCodes] = useState<string[]>(['']);
   const [selectionMode, setSelectionMode] = useState<'custom' | 'random'>();
   const [winnerSlots, setWinnerSlots] = useState<number>(1);
   const [isHighlighted, setIsHighlighted] = useState(false);
@@ -29,11 +28,31 @@ export default function CreateEventPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const handleCodeChange = (index: number, value: string) => {
+    const newCodes = [...codes];
+    newCodes[index] = value;
+    setCodes(newCodes);
+  };
+
+  const addCodeField = () => {
+    setCodes([...codes, '']);
+  };
+
+  const removeCodeField = (index: number) => {
+    const newCodes = codes.filter((_, i) => i !== index);
+    setCodes(newCodes);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectionMode) {
       toast({ title: 'Error', description: 'Please select a selection mode.', variant: 'destructive' });
       return;
+    }
+    const finalCodes = codes.map(c => c.trim()).filter(Boolean);
+    if (finalCodes.length === 0) {
+        toast({ title: 'Error', description: 'Please add at least one redeem code.', variant: 'destructive' });
+        return;
     }
     
     setIsSubmitting(true);
@@ -43,7 +62,7 @@ export default function CreateEventPage() {
       startTime: new Date(startTime).getTime(),
       endTime: new Date(endTime).getTime(),
       resultTime: new Date(resultTime).getTime(),
-      codes: codes.split('\n').map(c => c.trim()).filter(Boolean),
+      codes: finalCodes,
       selectionMode: selectionMode,
       ...(selectionMode === 'custom' && { winnerSlots: winnerSlots }),
       isHighlighted: isHighlighted,
@@ -89,9 +108,28 @@ export default function CreateEventPage() {
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="codes">Redeem Codes (one per line)</Label>
-            <Textarea id="codes" value={codes} onChange={(e) => setCodes(e.target.value)} required placeholder="CODE123&#10;CODE456&#10;CODE789" />
+          <div className="space-y-4">
+            <Label>Redeem Codes</Label>
+            <div className="space-y-2">
+              {codes.map((code, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    value={code}
+                    onChange={(e) => handleCodeChange(index, e.target.value)}
+                    placeholder={`Code ${index + 1}`}
+                    required
+                  />
+                  {codes.length > 1 && (
+                    <Button type="button" variant="outline" size="icon" onClick={() => removeCodeField(index)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={addCodeField}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Code
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
