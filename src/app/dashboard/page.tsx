@@ -8,7 +8,7 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Box, LogOut, Ticket, History, Eye, Ban, User } from 'lucide-react';
+import { Crown, Box, LogOut, Ticket, History, Eye, User } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -86,7 +86,7 @@ export default function DashboardPage() {
     switch (status) {
         case 'won': return <Badge variant="default" className="bg-green-500">Won</Badge>;
         case 'lost': return <Badge variant="destructive">Lost</Badge>;
-        case 'missed': return <Badge variant="secondary">Missed</Badge>;
+        case 'missed': return <Badge variant="destructive">Missed</Badge>;
         default: return null;
     }
   }
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-black/60 backdrop-blur-sm p-4 sm:p-6 md:p-8">
         <header className="flex justify-between items-center mb-8">
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-            <User /> Welcome, {username}
+            <User /> {username}
           </h1>
           <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
             <LogOut className="h-5 w-5" />
@@ -105,8 +105,7 @@ export default function DashboardPage() {
 
         <main className="max-w-4xl mx-auto">
           <section className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-2">Lucky Box Events</h2>
-            <p className="text-lg text-white/80 mb-6">Your chance to win is here. Click a box to see the event!</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-6">Upcoming Events</h2>
             
             <div className="grid gap-4 md:grid-cols-2">
               {upcomingEvents.length > 0 ? (
