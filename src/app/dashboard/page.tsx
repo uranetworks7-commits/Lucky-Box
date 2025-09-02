@@ -47,10 +47,12 @@ export default function DashboardPage() {
       if(username){
           const status: Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'pending'> = {};
           allEvents.forEach(event => {
-              const isRegistered = Object.values(event.registeredUsers || {}).includes(username);
+              const userEntry = Object.entries(event.registeredUsers || {}).find(([_, name]) => name === username);
+              const userId = userEntry ? userEntry[0] : null;
+              const isRegistered = !!userId;
 
               if (event.winners) { // Winners have been determined
-                  const isWinner = !!event.winners?.some(winnerId => (event.registeredUsers || {})[winnerId] === username);
+                  const isWinner = !!(userId && event.winners?.includes(userId));
                   if (isRegistered) {
                       status[event.id] = isWinner ? 'won' : 'lost';
                   } else {

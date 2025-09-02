@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -160,7 +161,7 @@ export default function EventPage() {
           <Sparkles className="h-16 w-16 text-red-400 mx-auto animate-pulse" />
           <h3 className="text-3xl font-bold text-white">The Event is LIVE!</h3>
           <p className="text-red-200/90">Your chance to win is now. Don't miss out!</p>
-          <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 text-lg font-bold animate-pulse">
+          <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 text-lg font-bold animate-pulse" disabled={registrationStatus !== 'unregistered'}>
               <Box className="mr-2 h-6 w-6"/>
               Spin
           </Button>
