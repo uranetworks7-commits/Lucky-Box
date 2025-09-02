@@ -158,7 +158,7 @@ export default function DashboardPage() {
                               <Badge variant="secondary">Registration Closed</Badge>
                             )}
                           </CardContent>
-                          <div className="flex items-center justify-center text-accent font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="flex items-center justify-center text-accent font-semibold opacity-100">
                                 Join Now <ArrowRight className="ml-2 h-4 w-4" />
                           </div>
                         </Card>
@@ -169,7 +169,7 @@ export default function DashboardPage() {
               ) : (
                 <Card className="w-full md:col-span-2 mx-auto bg-white/10 border-white/20 text-white">
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+                    <CardTitle className="flex items-center justify-center gap-2 text-xl">
                       <Ticket className="h-8 w-8 text-accent" />
                       No Active Events
                     </CardTitle>

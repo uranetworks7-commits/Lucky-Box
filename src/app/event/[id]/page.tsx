@@ -15,7 +15,7 @@ import { CheckCircle, Clock, Loader2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 
 type EventStatus = 'loading' | 'upcoming' | 'live' | 'ended' | 'results' | 'not_found';
-type RegistrationStatus = 'unregistered' | 'registering' | 'registered';
+type RegistrationStatus = 'unregistered' | 'registering' | 'registered' | 'animating';
 
 export default function EventPage() {
   const params = useParams();
@@ -62,7 +62,11 @@ export default function EventPage() {
         if (username) {
             const isRegistered = Object.values(eventData.registeredUsers || {}).includes(username);
             if (isRegistered) {
-                setRegistrationStatus('registered');
+                // If we are not currently animating, set to registered.
+                // This prevents the flicker when the DB updates before animation is complete.
+                if(registrationStatus !== 'animating') {
+                    setRegistrationStatus('registered');
+                }
             } else {
                 setRegistrationStatus('unregistered');
             }
@@ -72,19 +76,18 @@ export default function EventPage() {
       }
     });
     return () => unsubscribe();
-  }, [eventId, username, updateStatus]);
+  }, [eventId, username, updateStatus, registrationStatus]);
   
   const handleRegister = async () => {
-    if (!username || !event) return;
+    if (!username || !event || registrationStatus !== 'unregistered') return;
     setRegistrationStatus('registering');
 
     try {
         const usersRef = ref(db, `events/${event.id}/registeredUsers`);
         const newUserRef = push(usersRef);
         await set(newUserRef, username);
-        // We don't set status to 'registered' here. 
-        // The onComplete callback of the animation will do it.
-        // This is to make sure the animation always plays.
+        // Start animation after successful DB write.
+        setRegistrationStatus('animating');
     } catch (error) {
         console.error(error);
         toast({ title: 'Error', description: 'Registration failed. Please try again.', variant: 'destructive' });
@@ -110,7 +113,7 @@ export default function EventPage() {
         return <div className="flex items-center gap-2"><XCircle className="h-5 w-5 text-destructive" />Event not found.</div>
     }
 
-    if(registrationStatus === 'registering'){
+    if(registrationStatus === 'animating'){
         return <TerminalAnimation onComplete={onAnimationComplete} />;
     }
     
@@ -125,7 +128,7 @@ export default function EventPage() {
               </div>
           )
       }
-      return <Button onClick={handleRegister} size="lg" className="w-full">Register Now</Button>;
+      return <Button onClick={handleRegister} disabled={registrationStatus === 'registering'} size="lg" className="w-full">{registrationStatus === 'registering' ? 'Registering...' : 'Register Now'}</Button>;
     }
     
     if (eventStatus === 'upcoming') {
