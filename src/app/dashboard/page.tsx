@@ -90,18 +90,18 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://i.postimg.cc/c4jzTRB3/fhdabstract101.jpg')" }}>
       <div className="min-h-screen bg-black/60 backdrop-blur-sm p-4 sm:p-6 md:p-8">
-        <header className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2 mb-2">
-                <Box className="h-8 w-8 text-accent" /> URA BOX Pro
-            </h1>
-            <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-              <User /> {username}
-            </h2>
+        <header className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
+              <Box className="h-8 w-8 text-accent" /> URA BOX Pro
+          </h1>
+          <div className="flex items-center gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                <User /> {username}
+              </h2>
+              <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
+                <LogOut className="h-5 w-5" />
+              </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
-            <LogOut className="h-5 w-5" />
-          </Button>
         </header>
 
         <main className="max-w-4xl mx-auto">
