@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
   const [events, setEvents] = useState<LuckyEvent[]>([]);
-  const [userEventStatus, setUserEventStatus] = useState<Record<string, 'won' | 'lost' | 'missed' | 'registered'>>({});
+  const [userEventStatus, setUserEventStatus] = useState<Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'pending'>>({});
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
@@ -44,19 +44,20 @@ export default function DashboardPage() {
       setEvents(allEvents);
       
       if(username){
-          const status: Record<string, 'won' | 'lost' | 'missed' | 'registered'> = {};
+          const status: Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'pending'> = {};
           allEvents.forEach(event => {
               const isRegistered = Object.values(event.registeredUsers || {}).includes(username);
               const isWinner = !!event.winners?.some(winnerId => (event.registeredUsers || {})[winnerId] === username);
 
               if (now > event.resultTime) {
-                   // Winners are determined only when `event.winners` exists
                   if (event.winners) {
                       if (isRegistered) {
                           status[event.id] = isWinner ? 'won' : 'lost';
                       } else {
                           status[event.id] = 'missed';
                       }
+                  } else if (isRegistered) {
+                     status[event.id] = 'pending';
                   }
               } else if (isRegistered) {
                   status[event.id] = 'registered';
@@ -172,8 +173,9 @@ export default function DashboardPage() {
                             )}
                           </CardContent>
                           <div className="p-4 pt-0">
-                                {now >= event.startTime && (
+                                {now >= event.startTime && now <= event.endTime && (
                                     <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">
+                                        <Box className="mr-2 h-5 w-5" />
                                         Join Now <ArrowRight className="ml-2 h-5 w-5" />
                                     </Button>
                                 )}

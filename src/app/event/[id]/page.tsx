@@ -143,7 +143,7 @@ export default function EventPage() {
       }
       return (
         <div className="flex flex-col items-center justify-center space-y-4">
-            <p className="text-lg font-semibold text-primary">The event is now live!</p>
+            <p className="text-lg font-semibold text-primary flex items-center gap-2"><Box className="h-6 w-6 text-red-500"/> The event is now live!</p>
             <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 animate-pulse">
                 <Box className="mr-2 h-5 w-5"/>
                 Register Now
