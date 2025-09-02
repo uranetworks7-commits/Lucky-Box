@@ -12,6 +12,7 @@ import { PlusCircle, Eye, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { DeleteEventDialog } from '@/components/lucky-draw/DeleteEventDialog';
+import { Badge } from '@/components/ui/badge';
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState<LuckyEvent[]>([]);
@@ -42,6 +43,20 @@ export default function AdminDashboard() {
     setSelectedEvent(event);
     setIsDeleteDialogOpen(true);
   }
+  
+  const getEventStatus = (event: LuckyEvent) => {
+      const now = Date.now();
+      if (now > event.resultTime) {
+          return <Badge variant="destructive">Ended</Badge>;
+      }
+      if (now < event.startTime) {
+          return <Badge variant="outline">Upcoming</Badge>;
+      }
+      if (now > event.endTime) {
+          return <Badge variant="secondary">Registration Closed</Badge>;
+      }
+      return <Badge className="bg-green-500 hover:bg-green-600">Live</Badge>
+  }
 
   return (
     <div>
@@ -65,13 +80,14 @@ export default function AdminDashboard() {
               <TableRow>
                 <TableHead>Event Name</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center">Loading events...</TableCell>
+                  <TableCell colSpan={4} className="text-center">Loading events...</TableCell>
                 </TableRow>
               ) : events.length > 0 ? (
                 events.map((event) => (
@@ -82,6 +98,7 @@ export default function AdminDashboard() {
                       </span>
                     </TableCell>
                     <TableCell>{format(new Date(event.startTime), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{getEventStatus(event)}</TableCell>
                     <TableCell className="text-right space-x-2">
                         <Button variant="ghost" size="icon" asChild>
                             <Link href={`/admin/event/${event.id}`}>
@@ -104,7 +121,7 @@ export default function AdminDashboard() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center">No events found. Create one to get started!</TableCell>
+                  <TableCell colSpan={4} className="text-center">No events found. Create one to get started!</TableCell>
                 </TableRow>
               )}
             </TableBody>
