@@ -27,6 +27,7 @@ export default function EventPage() {
   const [event, setEvent] = useState<LuckyEvent | null>(null);
   const [eventStatus, setEventStatus] = useState<EventStatus>('loading');
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus>('unregistered');
+  const [showResultsLink, setShowResultsLink] = useState(false);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -34,12 +35,19 @@ export default function EventPage() {
     else setUsername(storedUsername);
   }, [router]);
 
-  const updateStatus = useCallback((eventData: LuckyEvent) => {
+  const updateStatus = useCallback((eventData: LuckyEvent | null) => {
+    if (!eventData) {
+      setEventStatus('not_found');
+      return;
+    }
     const now = Date.now();
     if (now < eventData.startTime) setEventStatus('upcoming');
     else if (now >= eventData.startTime && now <= eventData.endTime) setEventStatus('live');
     else if (now > eventData.endTime && now < eventData.resultTime) setEventStatus('ended');
-    else setEventStatus('results');
+    else {
+      setEventStatus('results');
+      setShowResultsLink(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -49,13 +57,16 @@ export default function EventPage() {
       if (snapshot.exists()) {
         const eventData = { id: eventId, ...snapshot.val() };
         setEvent(eventData);
-        
         updateStatus(eventData);
         
-        if (username && Object.values(eventData.registeredUsers || {}).includes(username)) {
-            setRegistrationStatus('registered');
+        if (username) {
+            const isRegistered = Object.values(eventData.registeredUsers || {}).includes(username);
+            if (isRegistered) {
+                setRegistrationStatus('registered');
+            } else {
+                setRegistrationStatus('unregistered');
+            }
         }
-
       } else {
         setEventStatus('not_found');
       }
@@ -71,6 +82,9 @@ export default function EventPage() {
         const usersRef = ref(db, `events/${event.id}/registeredUsers`);
         const newUserRef = push(usersRef);
         await set(newUserRef, username);
+        // We don't set status to 'registered' here. 
+        // The onComplete callback of the animation will do it.
+        // This is to make sure the animation always plays.
     } catch (error) {
         console.error(error);
         toast({ title: 'Error', description: 'Registration failed. Please try again.', variant: 'destructive' });
@@ -81,6 +95,10 @@ export default function EventPage() {
   const onAnimationComplete = () => {
     toast({ title: 'Success!', description: 'You have been successfully registered for the event.' });
     setRegistrationStatus('registered');
+  };
+
+  const onCountdownEnd = () => {
+    updateStatus(event);
   };
   
   const renderContent = () => {
@@ -95,46 +113,63 @@ export default function EventPage() {
     if(registrationStatus === 'registering'){
         return <TerminalAnimation onComplete={onAnimationComplete} />;
     }
-
-    if(registrationStatus === 'registered'){
-        return (
-            <div className="text-center space-y-4">
-                <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-                <h3 className="text-2xl font-bold">Successfully Registered!</h3>
-                <p className="text-muted-foreground">The results will be revealed in:</p>
-                <Countdown to={event.resultTime} onEnd={() => updateStatus(event)} />
-            </div>
-        )
+    
+    if (eventStatus === 'live') {
+      if (registrationStatus === 'registered') {
+          return (
+              <div className="text-center space-y-4">
+                  <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+                  <h3 className="text-2xl font-bold">Successfully Registered!</h3>
+                  <p className="text-muted-foreground">The results will be revealed in:</p>
+                  <Countdown to={event.resultTime} onEnd={onCountdownEnd} />
+              </div>
+          )
+      }
+      return <Button onClick={handleRegister} size="lg" className="w-full">Register Now</Button>;
     }
-
+    
     if (eventStatus === 'upcoming') {
         return <p>This event starts on {format(new Date(event.startTime), 'Pp')}.</p>;
     }
 
-    if (eventStatus === 'live') {
-        return <Button onClick={handleRegister} size="lg" className="w-full">Register Now</Button>;
-    }
+    const resultsContent = (
+      <div className="text-center space-y-4">
+        <h3 className="text-2xl font-bold">Results are out!</h3>
+        <p className="text-muted-foreground">Click below to see if you've won.</p>
+        <Button asChild size="lg"><Link href={`/result/${eventId}`}>View Results</Link></Button>
+      </div>
+    );
     
-    if (eventStatus === 'ended') {
+    if(showResultsLink) {
+        return resultsContent;
+    }
+
+    if (eventStatus === 'ended' || (eventStatus === 'live' && registrationStatus === 'registered')) {
         return (
              <div className="text-center space-y-4">
-                <Clock className="h-16 w-16 text-primary mx-auto" />
-                <h3 className="text-2xl font-bold">Registration Closed</h3>
-                <p className="text-muted-foreground">The event is over. Results will be announced soon.</p>
-                <Countdown to={event.resultTime} onEnd={() => updateStatus(event)} />
+                {registrationStatus === 'unregistered' ? (
+                    <>
+                        <Clock className="h-16 w-16 text-primary mx-auto" />
+                        <h3 className="text-2xl font-bold">Registration Closed</h3>
+                        <p className="text-muted-foreground">The event is over. Results will be announced soon.</p>
+                    </>
+                ) : (
+                   <>
+                     <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+                     <h3 className="text-2xl font-bold">Successfully Registered!</h3>
+                     <p className="text-muted-foreground">The results will be revealed in:</p>
+                   </>
+                )}
+                <Countdown to={event.resultTime} onEnd={onCountdownEnd} />
             </div>
         );
     }
 
     if (eventStatus === 'results') {
-        return (
-            <div className="text-center space-y-4">
-                <h3 className="text-2xl font-bold">Results are out!</h3>
-                <p className="text-muted-foreground">Click below to see if you've won.</p>
-                <Button asChild size="lg"><Link href={`/result/${eventId}`}>View Results</Link></Button>
-            </div>
-        );
+        return resultsContent;
     }
+    
+    return null; // Fallback
   }
 
   return (
@@ -143,7 +178,7 @@ export default function EventPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold">{event?.name || 'Lucky Draw'}</CardTitle>
           <CardDescription>
-            {event && eventStatus === 'live' && `Registration ends: ${format(new Date(event.endTime), 'Pp')}`}
+            {event && (eventStatus === 'live' || eventStatus === 'upcoming') && `Registration ends: ${format(new Date(event.endTime), 'Pp')}`}
           </CardDescription>
         </CardHeader>
         <CardContent className="min-h-[20rem] flex items-center justify-center">
