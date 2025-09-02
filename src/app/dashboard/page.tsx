@@ -115,7 +115,7 @@ export default function DashboardPage() {
                       <CardHeader>
                         <CardTitle className="flex items-center justify-center gap-2 text-2xl">
                           <Box className="h-8 w-8 text-accent"/>
-                          {event.name}
+                          Lucky Box
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
