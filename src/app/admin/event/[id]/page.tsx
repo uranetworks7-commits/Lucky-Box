@@ -44,7 +44,7 @@ export default function EventDetailsPage() {
   }
   
   const registeredUsers = event.registeredUsers ? Object.values(event.registeredUsers) : [];
-  const winners = event.winners ? event.winners.map(userId => event.registeredUsers?.[userId] || userId) : [];
+  const winners = event.winners ? event.winners.map(userId => ({userId, username: event.registeredUsers?.[userId] || userId})) : [];
 
   return (
     <div className="grid gap-6 md:grid-cols-3">
@@ -76,10 +76,10 @@ export default function EventDetailsPage() {
                     <TableRow><TableHead>Username</TableHead><TableHead>Code</TableHead></TableRow>
                 </TableHeader>
                 <TableBody>
-                    {event.winners && event.winners.length > 0 ? event.winners.map((userId) => (
-                        <TableRow key={userId}>
-                            <TableCell>{event.registeredUsers?.[userId] || 'Unknown'}</TableCell>
-                            <TableCell>{event.assignedCodes?.[userId] || 'N/A'}</TableCell>
+                    {winners.length > 0 ? winners.map((winner) => (
+                        <TableRow key={winner.userId}>
+                            <TableCell>{winner.username}</TableCell>
+                            <TableCell>{event.assignedCodes?.[winner.userId] || 'N/A'}</TableCell>
                         </TableRow>
                     )) : <TableRow><TableCell colSpan={2}>Winners not determined yet.</TableCell></TableRow>}
                 </TableBody>
@@ -107,10 +107,10 @@ export default function EventDetailsPage() {
                 <CardTitle>Codes ({event.codes.length})</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
+                <div className="text-sm text-muted-foreground mb-4">
                     {event.codes.slice(0, 5).map((code, i) => <span key={i} className="block truncate">{code}</span>)}
                     {event.codes.length > 5 && <span className="block">...and {event.codes.length - 5} more</span>}
-                </p>
+                </div>
                 <Button className="w-full" variant="outline" onClick={() => setIsEditDialogOpen(true)}>
                     <Pencil className="mr-2 h-4 w-4" /> Edit Codes
                 </Button>

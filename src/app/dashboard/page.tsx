@@ -86,7 +86,7 @@ export default function DashboardPage() {
     switch (status) {
         case 'won': return <Badge variant="default" className="bg-green-500">Won</Badge>;
         case 'lost': return <Badge variant="destructive">Lost</Badge>;
-        case 'missed': return <Badge variant="destructive">Missed</Badge>;
+        case 'missed': return <Badge variant="destructive" className="bg-red-500 text-white">Missed</Badge>;
         default: return null;
     }
   }
@@ -105,7 +105,7 @@ export default function DashboardPage() {
 
         <main className="max-w-4xl mx-auto">
           <section className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-6">Upcoming Events</h2>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-2">Upcoming Events</h2>
             
             <div className="grid gap-4 md:grid-cols-2">
               {upcomingEvents.length > 0 ? (
