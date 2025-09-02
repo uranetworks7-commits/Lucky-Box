@@ -88,7 +88,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://i.postimg.cc/c4jzTRB3/fhdabstract101.jpg')" }}>
+    <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')" }}>
       <div className="min-h-screen bg-black/60 backdrop-blur-sm p-4 sm:p-6 md:p-8">
         <header className="flex justify-between items-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">

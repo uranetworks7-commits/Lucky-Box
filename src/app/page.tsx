@@ -33,7 +33,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('https://i.postimg.cc/c4jzTRB3/fhdabstract101.jpg')"}}>
+    <main className="flex items-center justify-center min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')"}}>
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
         <Card className="w-full max-w-sm z-10">
             <CardHeader className="text-center">

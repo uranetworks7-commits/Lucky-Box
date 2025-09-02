@@ -13,11 +13,14 @@ const lines = [
   'Registration successful!',
 ];
 
+const TOTAL_DURATION = 4000; // 4 seconds
+
 export function TerminalAnimation({ onComplete }: { onComplete: () => void }) {
   const [visibleLines, setVisibleLines] = useState<string[]>([]);
   
   useEffect(() => {
     let i = 0;
+    const intervalDelay = TOTAL_DURATION / lines.length;
     const interval = setInterval(() => {
       if (i < lines.length) {
         setVisibleLines(prev => [...prev, lines[i]]);
@@ -26,7 +29,7 @@ export function TerminalAnimation({ onComplete }: { onComplete: () => void }) {
         clearInterval(interval);
         setTimeout(onComplete, 500);
       }
-    }, 500);
+    }, intervalDelay);
 
     return () => clearInterval(interval);
   }, [onComplete]);
