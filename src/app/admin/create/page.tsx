@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import type { LuckyEvent } from '@/types';
+import { Switch } from '@/components/ui/switch';
+import { Sparkles } from 'lucide-react';
 
 export default function CreateEventPage() {
   const [eventName, setEventName] = useState('');
@@ -21,6 +23,7 @@ export default function CreateEventPage() {
   const [codes, setCodes] = useState('');
   const [selectionMode, setSelectionMode] = useState<'custom' | 'random'>();
   const [winnerSlots, setWinnerSlots] = useState<number>(1);
+  const [isHighlighted, setIsHighlighted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
@@ -43,6 +46,7 @@ export default function CreateEventPage() {
       codes: codes.split('\n').map(c => c.trim()).filter(Boolean),
       selectionMode: selectionMode,
       ...(selectionMode === 'custom' && { winnerSlots: winnerSlots }),
+      isHighlighted: isHighlighted,
     };
 
     try {
@@ -90,7 +94,7 @@ export default function CreateEventPage() {
             <Textarea id="codes" value={codes} onChange={(e) => setCodes(e.target.value)} required placeholder="CODE123&#10;CODE456&#10;CODE789" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
             <div className="space-y-2">
               <Label htmlFor="selection-mode">Selection Mode</Label>
               <Select onValueChange={(value: 'custom' | 'random') => setSelectionMode(value)} required>
@@ -111,6 +115,13 @@ export default function CreateEventPage() {
             )}
           </div>
           
+          <div className="flex items-center space-x-2">
+            <Switch id="highlighter-mode" checked={isHighlighted} onCheckedChange={setIsHighlighted} />
+            <Label htmlFor="highlighter-mode" className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-accent" /> Highlight Event on Dashboard
+            </Label>
+          </div>
+
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Creating...' : 'Create Event'}
           </Button>
