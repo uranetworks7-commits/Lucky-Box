@@ -32,7 +32,7 @@ export function VideoPlayer({ onVideoEnd }: VideoPlayerProps) {
         onEnded={onVideoEnd}
         autoPlay
         playsInline
-        className="w-full h-full object-contain"
+        className="w-full h-full object-cover"
       >
         Your browser does not support the video tag.
       </video>

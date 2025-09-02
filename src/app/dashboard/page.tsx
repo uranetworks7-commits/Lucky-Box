@@ -47,10 +47,10 @@ export default function DashboardPage() {
           const status: Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'pending'> = {};
           allEvents.forEach(event => {
               const isRegistered = Object.values(event.registeredUsers || {}).includes(username);
-              const isWinner = !!event.winners?.some(winnerId => (event.registeredUsers || {})[winnerId] === username);
 
               if (now > event.resultTime) {
                   if (event.winners) {
+                      const isWinner = !!event.winners?.some(winnerId => (event.registeredUsers || {})[winnerId] === username);
                       if (isRegistered) {
                           status[event.id] = isWinner ? 'won' : 'lost';
                       } else {
@@ -166,14 +166,14 @@ export default function DashboardPage() {
                           <CardContent className="space-y-3 p-4 pt-0 text-center">
                             {now < event.startTime ? (
                               <div className="space-y-2">
-                                <Badge variant="outline" className="border-accent text-accent">Upcoming</Badge>
-                                <div className="flex justify-center items-center gap-4 text-sm text-white/80">
-                                    <div className="flex items-center gap-2"><Calendar className="h-4 w-4"/> {format(new Date(event.startTime), 'MMM d, yyyy')}</div>
-                                    <div className="flex items-center gap-2"><Clock className="h-4 w-4"/> {format(new Date(event.startTime), 'p')}</div>
+                                <Badge variant="outline" className="border-accent text-accent text-base py-1 px-4">Upcoming</Badge>
+                                <div className="flex justify-center items-center gap-4 text-lg text-white/80">
+                                    <div className="flex items-center gap-2"><Calendar className="h-5 w-5"/> {format(new Date(event.startTime), 'MMM d, yyyy')}</div>
+                                    <div className="flex items-center gap-2"><Clock className="h-5 w-5"/> {format(new Date(event.startTime), 'p')}</div>
                                 </div>
                               </div>
                             ) : (
-                               <Badge className="bg-red-500 hover:bg-red-600 animate-pulse">Live Now!</Badge>
+                               <Badge className="bg-red-500 hover:bg-red-600 animate-pulse text-base py-1 px-4">Live Now!</Badge>
                             )}
                           </CardContent>
                           <div className="p-4 pt-0">

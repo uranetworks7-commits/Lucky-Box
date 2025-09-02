@@ -162,7 +162,7 @@ export default function EventPage() {
           <p className="text-red-200/90">Your chance to win is now. Don't miss out!</p>
           <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 text-lg font-bold animate-pulse">
               <Box className="mr-2 h-6 w-6"/>
-              Join the Draw
+              Spin
           </Button>
         </div>
       );
