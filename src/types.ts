@@ -1,3 +1,4 @@
+
 export interface LuckyEvent {
   id: string;
   name: string;
@@ -6,7 +7,7 @@ export interface LuckyEvent {
   resultTime: number;
   codes: string[];
   selectionMode: 'custom' | 'random';
-  winnerSlots?: number;
+  customWinnerSlots?: Record<string, number>; // code: slot
   registeredUsers?: Record<string, string>; // firebase pushId: username
   winners?: string[]; // array of firebase pushIds
   assignedCodes?: Record<string, string>; // firebase pushId: code

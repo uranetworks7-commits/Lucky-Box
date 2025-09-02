@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -15,9 +16,8 @@ const AssignWinnerCodeInputSchema = z.object({
   eventId: z.string().describe('The ID of the event.'),
   registeredUsers: z.array(z.string()).describe('Array of user IDs who registered for the event.'),
   codes: z.array(z.string()).describe('Array of prize codes to assign.'),
-  // Deprecated fields, no longer used but kept for schema compatibility if needed.
   selectionMode: z.enum(['custom', 'random']).optional().describe('The selection mode for the event (custom or random).'),
-  winnerSlots: z.number().optional().describe('The number of winner slots for custom selection.'),
+  customWinnerSlots: z.record(z.string(), z.number()).optional().describe('Mapping of codes to winner slots for custom selection.'),
 });
 export type AssignWinnerCodeInput = z.infer<typeof AssignWinnerCodeInputSchema>;
 
@@ -38,27 +38,45 @@ const assignWinnerCodeFlow = ai.defineFlow(
     outputSchema: AssignWinnerCodeOutputSchema,
   },
   async input => {
-    const { registeredUsers, codes } = input;
+    const { registeredUsers, codes, selectionMode, customWinnerSlots } = input;
+    const assignedCodes: Record<string, string> = {};
+    const winners: string[] = [];
 
     if (registeredUsers.length === 0 || codes.length === 0) {
-      return {
-        winners: [],
-        assignedCodes: {},
-      };
+      return { winners, assignedCodes };
     }
-    
-    // Shuffle users to randomize winner selection
-    const shuffledUsers = [...registeredUsers].sort(() => 0.5 - Math.random());
-    
-    // Determine the number of winners, which is the minimum of available codes and registered users.
-    const numberOfWinners = Math.min(shuffledUsers.length, codes.length);
-    
-    const winners = shuffledUsers.slice(0, numberOfWinners);
-    const assignedCodes: Record<string, string> = {};
 
-    winners.forEach((winnerId, index) => {
-        assignedCodes[winnerId] = codes[index];
-    });
+    if (selectionMode === 'custom' && customWinnerSlots) {
+      // Custom selection logic based on registration order
+      const codeToSlotMap = customWinnerSlots;
+      const slotToCodeMap = new Map<number, string>();
+      for(const code of codes) {
+          const slot = codeToSlotMap[code];
+          if(slot) {
+              slotToCodeMap.set(slot, code);
+          }
+      }
+      
+      registeredUsers.forEach((userId, index) => {
+        const registrationOrder = index + 1; // 1-based index
+        if (slotToCodeMap.has(registrationOrder)) {
+          const code = slotToCodeMap.get(registrationOrder)!;
+          assignedCodes[userId] = code;
+          winners.push(userId);
+        }
+      });
+      
+    } else {
+      // Random selection logic
+      const shuffledUsers = [...registeredUsers].sort(() => 0.5 - Math.random());
+      const numberOfWinners = Math.min(shuffledUsers.length, codes.length);
+      const randomWinners = shuffledUsers.slice(0, numberOfWinners);
+
+      randomWinners.forEach((winnerId, index) => {
+          assignedCodes[winnerId] = codes[index];
+          winners.push(winnerId);
+      });
+    }
     
     return {
       winners,

@@ -1,3 +1,4 @@
+
 'use server';
 
 import { assignWinnerCode, type AssignWinnerCodeInput } from '@/ai/flows/assign-winner-code';
@@ -34,8 +35,8 @@ export async function determineWinners(eventId: string): Promise<LuckyEvent> {
     eventId: eventId,
     registeredUsers: registeredUsers,
     selectionMode: eventData.selectionMode,
-    winnerSlots: eventData.winnerSlots,
     codes: eventData.codes,
+    customWinnerSlots: eventData.customWinnerSlots,
   };
 
   try {

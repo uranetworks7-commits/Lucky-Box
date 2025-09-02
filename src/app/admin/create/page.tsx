@@ -22,25 +22,23 @@ export default function CreateEventPage() {
   const [endTime, setEndTime] = useState('');
   const [resultTime, setResultTime] = useState('');
   const [codes, setCodes] = useState<string[]>(['']);
+  const [customSlots, setCustomSlots] = useState<Record<number, number>>({});
   const [selectionMode, setSelectionMode] = useState<'custom' | 'random'>();
-  const [winnerSlots, setWinnerSlots] = useState<number>(1);
   const [isHighlighted, setIsHighlighted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
   const { toast } = useToast();
-  
-  useEffect(() => {
-    if (selectionMode === 'custom') {
-      const activeCodes = codes.filter(c => c.trim() !== '').length;
-      setWinnerSlots(activeCodes > 0 ? activeCodes : 1);
-    }
-  }, [codes, selectionMode]);
 
   const handleCodeChange = (index: number, value: string) => {
     const newCodes = [...codes];
     newCodes[index] = value;
     setCodes(newCodes);
+  };
+  
+  const handleSlotChange = (index: number, value: string) => {
+    const slot = parseInt(value, 10);
+    setCustomSlots(prev => ({ ...prev, [index]: slot }));
   };
 
   const addCodeField = () => {
@@ -50,6 +48,16 @@ export default function CreateEventPage() {
   const removeCodeField = (index: number) => {
     const newCodes = codes.filter((_, i) => i !== index);
     setCodes(newCodes);
+    const newSlots = {...customSlots};
+    delete newSlots[index];
+    // Re-index slots
+    for (let i = index; i < codes.length -1; i++) {
+        if(newSlots[i+1]) {
+            newSlots[i] = newSlots[i+1];
+            delete newSlots[i+1];
+        }
+    }
+    setCustomSlots(newSlots);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,6 +72,33 @@ export default function CreateEventPage() {
         return;
     }
     
+    let customWinnerSlots: Record<string, number> | undefined;
+    if (selectionMode === 'custom') {
+        customWinnerSlots = {};
+        let isValid = true;
+        const usedSlots = new Set<number>();
+
+        finalCodes.forEach((code, index) => {
+            const slot = customSlots[index];
+            if (!slot || slot <= 0) {
+                isValid = false;
+                return;
+            }
+            if(usedSlots.has(slot)){
+                toast({ title: 'Error', description: `Winner slot ${slot} is used more than once.`, variant: 'destructive' });
+                isValid = false;
+                return;
+            }
+            usedSlots.add(slot);
+            customWinnerSlots![code] = slot;
+        });
+
+        if (!isValid) {
+            toast({ title: 'Error', description: 'Please enter a valid, positive winner slot for each code.', variant: 'destructive' });
+            return;
+        }
+    }
+    
     setIsSubmitting(true);
     
     const newEvent: Omit<LuckyEvent, 'id'> = {
@@ -73,7 +108,7 @@ export default function CreateEventPage() {
       resultTime: new Date(resultTime).getTime(),
       codes: finalCodes,
       selectionMode: selectionMode,
-      ...(selectionMode === 'custom' && { winnerSlots: winnerSlots }),
+      ...(selectionMode === 'custom' && { customWinnerSlots: customWinnerSlots }),
       isHighlighted: isHighlighted,
     };
 
@@ -118,9 +153,27 @@ export default function CreateEventPage() {
               <Input id="result-time" type="datetime-local" value={resultTime} onChange={(e) => setResultTime(e.target.value)} required />
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label>Selection Mode</Label>
+            <Select onValueChange={(value: 'custom' | 'random') => setSelectionMode(value)} >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="custom">Custom Selection</SelectItem>
+                <SelectItem value="random">Random Selection</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           
           <div className="space-y-4">
             <Label>Redeem Codes</Label>
+            <CardDescription>
+                {selectionMode === 'custom' 
+                    ? 'For each code, specify the winner slot (e.g., 1 for the 1st person to register).' 
+                    : 'Codes will be assigned randomly to winners.'}
+            </CardDescription>
             <div className="space-y-2">
               {codes.map((code, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -129,6 +182,16 @@ export default function CreateEventPage() {
                     onChange={(e) => handleCodeChange(index, e.target.value)}
                     placeholder={`Code ${index + 1}`}
                   />
+                  {selectionMode === 'custom' && (
+                     <Input
+                        type="number"
+                        min="1"
+                        placeholder="Win Slot"
+                        className="w-32"
+                        value={customSlots[index] || ''}
+                        onChange={(e) => handleSlotChange(index, e.target.value)}
+                      />
+                  )}
                   {codes.length > 1 && (
                     <Button type="button" variant="outline" size="icon" onClick={() => removeCodeField(index)}>
                       <Trash2 className="h-4 w-4" />
@@ -140,27 +203,6 @@ export default function CreateEventPage() {
             <Button type="button" variant="outline" size="sm" onClick={addCodeField}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Code
             </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <div className="space-y-2">
-              <Label htmlFor="selection-mode">Selection Mode</Label>
-              <Select onValueChange={(value: 'custom' | 'random') => setSelectionMode(value)} >
-                <SelectTrigger id="selection-mode">
-                  <SelectValue placeholder="Select a mode" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="custom">Custom Selection</SelectItem>
-                  <SelectItem value="random">Random Selection</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {selectionMode === 'custom' && (
-              <div className="space-y-2">
-                <Label htmlFor="winner-slots">Winner Slots</Label>
-                <Input id="winner-slots" type="number" value={winnerSlots} readOnly className="bg-muted" />
-              </div>
-            )}
           </div>
           
           <div className="flex items-center space-x-2">
