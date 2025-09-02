@@ -118,9 +118,12 @@ export default function DashboardPage() {
                           Lucky Box
                         </CardTitle>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="space-y-2">
                         {Date.now() < event.startTime ? (
-                          <p>Starts: {format(new Date(event.startTime), 'Pp')}</p>
+                          <>
+                            <Badge variant="outline">Upcoming Event</Badge>
+                            <p className="text-sm">Starts: {format(new Date(event.startTime), 'Pp')}</p>
+                          </>
                         ) : Date.now() <= event.endTime ? (
                           <Badge>Live Now!</Badge>
                         ) : (
