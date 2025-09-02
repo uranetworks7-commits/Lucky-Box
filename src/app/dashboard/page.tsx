@@ -50,10 +50,13 @@ export default function DashboardPage() {
               const isWinner = !!event.winners?.some(winnerId => (event.registeredUsers || {})[winnerId] === username);
 
               if (now > event.resultTime) {
-                  if (isRegistered) {
-                      status[event.id] = isWinner ? 'won' : 'lost';
-                  } else {
-                      status[event.id] = 'missed';
+                   // Winners are determined only when `event.winners` exists
+                  if (event.winners) {
+                      if (isRegistered) {
+                          status[event.id] = isWinner ? 'won' : 'lost';
+                      } else {
+                          status[event.id] = 'missed';
+                      }
                   }
               } else if (isRegistered) {
                   status[event.id] = 'registered';
@@ -118,8 +121,8 @@ export default function DashboardPage() {
   }
 
   const now = Date.now();
-  const upcomingEvents = events.filter(e => e.resultTime > now);
-  const pastEvents = events.filter(e => e.resultTime <= now).sort((a, b) => b.resultTime - a.resultTime);
+  const upcomingEvents = events.filter(e => e.endTime > now);
+  const pastEvents = events.filter(e => e.endTime <= now).sort((a, b) => b.resultTime - a.resultTime);
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')" }}>
@@ -164,14 +167,12 @@ export default function DashboardPage() {
                                 <Badge variant="outline" className="border-accent text-accent">Upcoming Event</Badge>
                                 <p className="text-sm text-white/80">Starts: {format(new Date(event.startTime), 'Pp')}</p>
                               </div>
-                            ) : now <= event.endTime ? (
-                               <Badge className="bg-red-500 hover:bg-red-600">Live Now!</Badge>
                             ) : (
-                              <Badge variant="secondary">Registration Closed</Badge>
+                               <Badge className="bg-red-500 hover:bg-red-600">Live Now!</Badge>
                             )}
                           </CardContent>
                           <div className="p-4 pt-0">
-                                {now >= event.startTime && now <= event.endTime && (
+                                {now >= event.startTime && (
                                     <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">
                                         Join Now <ArrowRight className="ml-2 h-5 w-5" />
                                     </Button>
@@ -209,7 +210,7 @@ export default function DashboardPage() {
                         {getEventStatusBadge(event.id)}
                       </CardTitle>
                       <CardDescription className="text-white/60 pt-1">
-                        Ended on: {format(new Date(event.resultTime), 'Pp')}
+                        Ended on: {format(new Date(event.endTime), 'Pp')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
