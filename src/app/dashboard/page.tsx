@@ -159,7 +159,7 @@ export default function DashboardPage() {
                             event.isHighlighted && "border-accent shadow-accent/20 shadow-lg"
                         )}>
                           <CardHeader className="p-4">
-                            <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+                            <CardTitle className={cn("flex items-center justify-center gap-2 text-2xl", event.isHighlighted && 'animate-golden-glow text-accent')}>
                               {event.name}
                             </CardTitle>
                           </CardHeader>

@@ -94,7 +94,7 @@ export default function AdminDashboard() {
                 events.map((event) => (
                   <TableRow key={event.id}>
                     <TableCell className="font-medium">
-                      <span className={cn(event.isHighlighted && 'animate-golden-glow')}>
+                      <span className={cn(event.isHighlighted && 'animate-golden-glow text-accent')}>
                         {event.name}
                       </span>
                     </TableCell>
