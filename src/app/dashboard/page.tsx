@@ -8,7 +8,7 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -117,6 +117,7 @@ export default function DashboardPage() {
         case 'won': return <Badge variant="default" className="bg-green-500 hover:bg-green-600">Won</Badge>;
         case 'lost': return <Badge variant="destructive">Lost</Badge>;
         case 'missed': return <Badge variant="destructive" className="bg-red-500 text-white hover:bg-red-600">Missed</Badge>;
+        case 'pending': return <Badge variant="outline">Pending</Badge>
         default: return null;
     }
   }
@@ -164,12 +165,15 @@ export default function DashboardPage() {
                           </CardHeader>
                           <CardContent className="space-y-3 p-4 pt-0 text-center">
                             {now < event.startTime ? (
-                              <div className="space-y-1">
-                                <Badge variant="outline" className="border-accent text-accent">Upcoming Event</Badge>
-                                <p className="text-sm text-white/80">Starts: {format(new Date(event.startTime), 'Pp')}</p>
+                              <div className="space-y-2">
+                                <Badge variant="outline" className="border-accent text-accent">Upcoming</Badge>
+                                <div className="flex justify-center items-center gap-4 text-sm text-white/80">
+                                    <div className="flex items-center gap-2"><Calendar className="h-4 w-4"/> {format(new Date(event.startTime), 'MMM d, yyyy')}</div>
+                                    <div className="flex items-center gap-2"><Clock className="h-4 w-4"/> {format(new Date(event.startTime), 'p')}</div>
+                                </div>
                               </div>
                             ) : (
-                               <Badge className="bg-red-500 hover:bg-red-600">Live Now!</Badge>
+                               <Badge className="bg-red-500 hover:bg-red-600 animate-pulse">Live Now!</Badge>
                             )}
                           </CardContent>
                           <div className="p-4 pt-0">

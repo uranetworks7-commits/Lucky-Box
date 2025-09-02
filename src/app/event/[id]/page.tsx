@@ -11,7 +11,7 @@ import { TerminalAnimation } from '@/components/lucky-draw/TerminalAnimation';
 import { Countdown } from '@/components/lucky-draw/Countdown';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift, Box } from 'lucide-react';
+import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift, Box, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 type EventStatus = 'loading' | 'upcoming' | 'live' | 'ended' | 'results' | 'not_found';
@@ -156,12 +156,14 @@ export default function EventPage() {
           )
       }
       return (
-        <div className="flex flex-col items-center justify-center space-y-4">
-            <p className="text-lg font-semibold text-primary flex items-center gap-2"><Box className="h-6 w-6 text-red-500"/> The event is now live!</p>
-            <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 animate-pulse">
-                <Box className="mr-2 h-5 w-5"/>
-                Register Now
-            </Button>
+        <div className="text-center space-y-4 p-6 bg-red-500/10 rounded-lg border border-red-500/30">
+          <Sparkles className="h-16 w-16 text-red-400 mx-auto animate-pulse" />
+          <h3 className="text-3xl font-bold text-white">The Event is LIVE!</h3>
+          <p className="text-red-200/90">Your chance to win is now. Don't miss out!</p>
+          <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 text-lg font-bold animate-pulse">
+              <Box className="mr-2 h-6 w-6"/>
+              Join the Draw
+          </Button>
         </div>
       );
     }
