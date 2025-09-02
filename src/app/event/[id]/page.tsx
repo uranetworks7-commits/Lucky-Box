@@ -189,7 +189,7 @@ export default function EventPage() {
         <Button asChild variant="ghost" className="absolute top-4 left-4">
             <Link href="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" />Back</Link>
         </Button>
-        <CardHeader className="text-center pt-16">
+        <CardHeader className="text-center pt-12 pb-2">
           <CardTitle className="text-3xl font-bold">{event?.name || 'Lucky Draw'}</CardTitle>
           <CardDescription>
             {event && (eventStatus === 'live' || eventStatus === 'upcoming') && `Registration ends: ${format(new Date(event.endTime), 'Pp')}`}
