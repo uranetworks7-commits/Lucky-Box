@@ -130,9 +130,6 @@ export default function DashboardPage() {
           </h1>
           <div className="flex items-center gap-4">
               <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={handleAdminAccessClick} className="text-white hover:bg-white/10 hover:text-white">
-                  <Crown className="h-5 w-5" />
-                </Button>
                 <User /> {username}
               </h2>
               <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
@@ -233,6 +230,12 @@ export default function DashboardPage() {
             </div>
           </section>
         </main>
+        
+        <div className="fixed bottom-4 right-4">
+            <Button variant="ghost" size="icon" onClick={handleAdminAccessClick} className="text-white bg-black/50 hover:bg-white/20 rounded-full h-12 w-12">
+                <Crown className="h-6 w-6" />
+            </Button>
+        </div>
         
         <AdminAccessDialog open={isAdminDialogOpen} onOpenChange={setIsAdminDialogOpen} />
       </div>
