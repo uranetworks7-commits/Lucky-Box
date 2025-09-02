@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -40,10 +41,14 @@ export default function AdminLayout({
         </Link>
         <div className="ml-auto flex items-center gap-2">
             <Button variant="outline" size="sm" asChild>
-                <Link href="/dashboard"><LayoutDashboard className="mr-2 h-4 w-4"/> User Dashboard</Link>
+                <Link href="/dashboard">
+                    <LayoutDashboard className="h-4 w-4 md:mr-2"/>
+                    <span className="hidden md:inline">User Dashboard</span>
+                </Link>
             </Button>
             <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" /> Exit Admin
+                <LogOut className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Exit Admin</span>
             </Button>
         </div>
       </header>
