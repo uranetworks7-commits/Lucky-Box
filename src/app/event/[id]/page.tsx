@@ -11,7 +11,7 @@ import { TerminalAnimation } from '@/components/lucky-draw/TerminalAnimation';
 import { Countdown } from '@/components/lucky-draw/Countdown';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift } from 'lucide-react';
+import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift, Box } from 'lucide-react';
 import Link from 'next/link';
 
 type EventStatus = 'loading' | 'upcoming' | 'live' | 'ended' | 'results' | 'not_found';
@@ -145,7 +145,7 @@ export default function EventPage() {
         <div className="flex flex-col items-center justify-center space-y-4">
             <p className="text-lg font-semibold text-primary">The event is now live!</p>
             <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 animate-pulse">
-                <Gift className="mr-2 h-5 w-5"/>
+                <Box className="mr-2 h-5 w-5"/>
                 Register Now
             </Button>
         </div>

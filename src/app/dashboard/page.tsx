@@ -90,7 +90,6 @@ export default function DashboardPage() {
     // If clicks are more than 1 second apart, reset the counter.
     if (now - lastClickTime > 1000) {
       setAdminClickCount(1);
-      toast({ title: 'Feature not available', description: 'This feature is restricted.' });
     } else {
       const newClickCount = adminClickCount + 1;
       setAdminClickCount(newClickCount);
@@ -125,15 +124,15 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')" }}>
       <div className="min-h-screen bg-black/60 p-4 sm:p-6 md:p-8">
-        <header className="flex justify-between items-center mb-8">
+        <header className="flex justify-between items-center mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
               <Box className="h-8 w-8 text-accent" /> URA BOX Pro
           </h1>
           <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={handleAdminAccessClick} className="text-white hover:bg-white/10 hover:text-white">
-                <Crown className="h-5 w-5" />
-              </Button>
               <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={handleAdminAccessClick} className="text-white hover:bg-white/10 hover:text-white">
+                  <Crown className="h-5 w-5" />
+                </Button>
                 <User /> {username}
               </h2>
               <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
@@ -147,7 +146,7 @@ export default function DashboardPage() {
              {upcomingEvents.length > 0 ? (
                 <>
                     <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 flex items-center justify-center gap-3">
-                        <Gift className="h-10 w-10 text-accent" /> Lucky Box
+                        <Box className="h-10 w-10 text-accent" /> Lucky Box
                     </h2>
                     <div className="grid gap-6 md:grid-cols-2">
                     {upcomingEvents.map(event => (
