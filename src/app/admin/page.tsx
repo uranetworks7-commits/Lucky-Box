@@ -8,8 +8,7 @@ import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Users, Trophy, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { PlusCircle, Eye, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { DeleteEventDialog } from '@/components/lucky-draw/DeleteEventDialog';
@@ -44,14 +43,6 @@ export default function AdminDashboard() {
     setIsDeleteDialogOpen(true);
   }
 
-  const getStatus = (event: LuckyEvent) => {
-    const now = Date.now();
-    if (now < event.startTime) return <Badge variant="outline">Upcoming</Badge>;
-    if (now >= event.startTime && now <= event.endTime) return <Badge variant="default" className="bg-red-500">Live</Badge>;
-    if (now > event.endTime && now < event.resultTime) return <Badge variant="secondary">Ending</Badge>;
-    return <Badge variant="secondary" className="bg-gray-500">Ended</Badge>;
-  };
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -73,44 +64,37 @@ export default function AdminDashboard() {
             <TableHeader>
               <TableRow>
                 <TableHead>Event Name</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead className="text-center">Registered</TableHead>
-                <TableHead className="text-center">Winners</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">Loading events...</TableCell>
+                  <TableCell colSpan={3} className="text-center">Loading events...</TableCell>
                 </TableRow>
               ) : events.length > 0 ? (
                 events.map((event) => (
                   <TableRow key={event.id}>
                     <TableCell className="font-medium">
-                      <Link 
-                        href={`/admin/event/${event.id}`} 
-                        className={cn("hover:underline", event.isHighlighted && 'animate-golden-glow')}
-                      >
+                      <span className={cn(event.isHighlighted && 'animate-golden-glow')}>
                         {event.name}
-                      </Link>
+                      </span>
                     </TableCell>
-                    <TableCell>{getStatus(event)}</TableCell>
                     <TableCell>{format(new Date(event.startTime), 'MMM d, yyyy')}</TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        {Object.keys(event.registeredUsers || {}).length}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                         <Trophy className="h-4 w-4 text-muted-foreground" />
-                         {event.winners ? event.winners.length : 'N/A'}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-2">
+                        <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/admin/event/${event.id}`}>
+                                <Eye className="h-4 w-4" />
+                                <span className="sr-only">View Details</span>
+                            </Link>
+                        </Button>
+                         <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/admin/event/${event.id}`}>
+                                <Pencil className="h-4 w-4" />
+                                <span className="sr-only">Edit</span>
+                            </Link>
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(event)} className="text-destructive hover:text-destructive">
                             <Trash2 className="h-4 w-4" />
                             <span className="sr-only">Delete</span>
@@ -120,7 +104,7 @@ export default function AdminDashboard() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">No events found. Create one to get started!</TableCell>
+                  <TableCell colSpan={3} className="text-center">No events found. Create one to get started!</TableCell>
                 </TableRow>
               )}
             </TableBody>
