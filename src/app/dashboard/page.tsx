@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -49,15 +50,11 @@ export default function DashboardPage() {
               const isRegistered = Object.values(event.registeredUsers || {}).includes(username);
 
               if (now > event.resultTime) {
-                  if (event.winners) {
-                      const isWinner = !!event.winners?.some(winnerId => (event.registeredUsers || {})[winnerId] === username);
-                      if (isRegistered) {
-                          status[event.id] = isWinner ? 'won' : 'lost';
-                      } else {
-                          status[event.id] = 'missed';
-                      }
-                  } else if (isRegistered) {
-                     status[event.id] = 'pending';
+                  const isWinner = !!event.winners?.some(winnerId => (event.registeredUsers || {})[winnerId] === username);
+                  if (isRegistered) {
+                      status[event.id] = isWinner ? 'won' : 'lost';
+                  } else {
+                      status[event.id] = 'missed';
                   }
               } else if (isRegistered) {
                   status[event.id] = 'registered';
@@ -166,7 +163,7 @@ export default function DashboardPage() {
                           <CardContent className="space-y-3 p-4 pt-0 text-center">
                             {now < event.startTime ? (
                               <div className="space-y-2">
-                                <Badge variant="outline" className="border-accent text-accent text-base py-1 px-4">Upcoming</Badge>
+                                <Badge variant="outline" className="border-accent text-accent text-lg py-1 px-4">Upcoming</Badge>
                                 <div className="flex justify-center items-center gap-4 text-lg text-white/80">
                                     <div className="flex items-center gap-2"><Calendar className="h-5 w-5"/> {format(new Date(event.startTime), 'MMM d, yyyy')}</div>
                                     <div className="flex items-center gap-2"><Clock className="h-5 w-5"/> {format(new Date(event.startTime), 'p')}</div>
