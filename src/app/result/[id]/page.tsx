@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { VideoPlayer } from '@/components/lucky-draw/VideoPlayer';
 import { Countdown } from '@/components/lucky-draw/Countdown';
+import { onValue, ref } from 'firebase/database';
+import { db } from '@/lib/firebase';
 
 export default function ResultPage() {
   const params = useParams();
@@ -34,62 +36,51 @@ export default function ResultPage() {
     }
   }, [router]);
 
+  const fetchLatestEventData = async () => {
+    if (!eventId) return;
+    try {
+      // First, trigger winner determination if needed. This action is idempotent.
+      const eventData = await determineWinners(eventId);
+      setEvent(eventData);
+      const now = Date.now();
+      if (now >= eventData.resultTime && eventData.winners !== undefined) {
+        setIsResultReady(true);
+        const sessionKey = `playedVideo_${eventId}`;
+        const hasPlayed = sessionStorage.getItem(sessionKey) === 'true';
+        if (!hasPlayed) {
+          setShowVideo(true);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Error', description: 'Could not fetch event results.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!eventId || !username) return;
+    
+    // Initial fetch to get data and show countdown if needed
+    fetchLatestEventData();
 
-    const fetchResults = () => {
-      determineWinners(eventId)
-        .then((eventData) => {
-          setEvent(eventData);
-          if (eventData.winners) {
-            const sessionKey = `playedVideo_${eventId}`;
-            const hasPlayed = sessionStorage.getItem(sessionKey) === 'true';
-            if (!hasPlayed) {
-                setShowVideo(true);
-            }
-            setIsResultReady(true);
-          } else if (Date.now() > eventData.resultTime) {
-            // This case handles if the winner determination failed on the server
-            // or if there were no participants.
-            setIsResultReady(true);
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-          toast({ title: 'Error', description: 'Could not fetch event results.', variant: 'destructive' });
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    };
-
-    // Initial fetch
-    determineWinners(eventId).then(initialEventData => {
-        setEvent(initialEventData);
-        setLoading(false);
-
-        const now = Date.now();
-        if (now >= initialEventData.resultTime) {
-            if (!initialEventData.winners) {
-                // If past result time and no winners, it means we need to trigger it.
-                 fetchResults();
-            } else {
+    // Also listen for real-time updates to catch when winners are determined
+    const eventRef = ref(db, `events/${eventId}`);
+    const unsubscribe = onValue(eventRef, (snapshot) => {
+        if(snapshot.exists()) {
+            const eventData: LuckyEvent = { id: eventId, ...snapshot.val() };
+            setEvent(eventData);
+            const now = Date.now();
+            if (now >= eventData.resultTime && eventData.winners !== undefined) {
                 setIsResultReady(true);
-                const sessionKey = `playedVideo_${eventId}`;
-                const hasPlayed = sessionStorage.getItem(sessionKey) === 'true';
-                if (!hasPlayed) {
-                    setShowVideo(true);
-                }
             }
         }
-        // If it's not result time yet, the countdown will handle fetching later.
-    }).catch(err => {
-        console.error(err);
-        toast({ title: 'Error', description: 'Could not fetch event data.', variant: 'destructive' });
-        setLoading(false);
     });
 
-  }, [eventId, username, toast]);
+    return () => unsubscribe();
+
+  }, [eventId, username]);
 
   const onVideoEnd = () => {
     sessionStorage.setItem(`playedVideo_${eventId}`, 'true');
@@ -97,21 +88,9 @@ export default function ResultPage() {
   }
   
   const onCountdownEnd = () => {
+    // When countdown ends, the result should be ready. Fetch the final data.
     setLoading(true);
-    // Refetch results
-     determineWinners(eventId)
-      .then((eventData) => {
-        setEvent(eventData);
-        setIsResultReady(!!eventData.winners);
-         if (eventData.winners) {
-            const sessionKey = `playedVideo_${eventId}`;
-            const hasPlayed = sessionStorage.getItem(sessionKey) === 'true';
-            if (!hasPlayed) {
-                setShowVideo(true);
-            }
-         }
-      })
-      .finally(() => setLoading(false));
+    fetchLatestEventData();
   }
 
   const handleCopy = (code: string) => {
@@ -128,18 +107,19 @@ export default function ResultPage() {
       return (
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-muted-foreground">Calculating results...</p>
+          <p className="text-muted-foreground">Checking results...</p>
         </div>
       );
     }
     
+    const now = Date.now();
     // Results are not ready yet, show countdown
-    if (!isResultReady && Date.now() < event.resultTime) {
+    if (!isResultReady && now < event.resultTime) {
        return (
         <div className="text-center space-y-4">
             <Clock className="h-16 w-16 text-primary mx-auto" />
             <h3 className="text-2xl font-bold">Results are being finalized!</h3>
-            <p className="text-muted-foreground">Come back in a moment. The winners will be announced in:</p>
+            <p className="text-muted-foreground">The winners will be announced in:</p>
             <Countdown to={event.resultTime} onEnd={onCountdownEnd} />
         </div>
       );
@@ -148,6 +128,29 @@ export default function ResultPage() {
     const winnerObject = Object.entries(event.registeredUsers || {}).find(([id, name]) => name === username);
     const isRegistered = !!winnerObject;
     const userId = winnerObject ? winnerObject[0] : null;
+
+    // Handle case where winners array is empty or not present after result time
+    if (!event.winners || event.winners.length === 0) {
+        if (isRegistered) {
+            return (
+              <div className="text-center space-y-4">
+                <Frown className="h-16 w-16 text-destructive mx-auto" />
+                <h3 className="text-2xl font-bold">Not This Time... 😔</h3>
+                <p className="text-muted-foreground">Unfortunately, you didn't win this time. Keep trying!</p>
+              </div>
+            );
+        } else {
+             return (
+                <div className="text-center space-y-4">
+                  <AlertTriangle className="h-16 w-16 text-yellow-500 mx-auto" />
+                  <h3 className="text-2xl font-bold">You Missed It!</h3>
+                  <p className="text-muted-foreground">You didn't register for this event. Better luck next time!</p>
+                </div>
+              );
+        }
+    }
+
+
     const isWinner = !!(userId && event.winners?.includes(userId));
 
     if (!isRegistered) {

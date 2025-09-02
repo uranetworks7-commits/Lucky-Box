@@ -31,6 +31,25 @@ export async function assignWinnerCode(input: AssignWinnerCodeInput): Promise<As
   return assignWinnerCodeFlow(input);
 }
 
+// Fisher-Yates (aka Knuth) Shuffle algorithm
+function shuffle<T>(array: T[]): T[] {
+  let currentIndex = array.length, randomIndex;
+
+  // While there remain elements to shuffle.
+  while (currentIndex !== 0) {
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+
+  return array;
+}
+
+
 const assignWinnerCodeFlow = ai.defineFlow(
   {
     name: 'assignWinnerCodeFlow',
@@ -67,8 +86,8 @@ const assignWinnerCodeFlow = ai.defineFlow(
       });
       
     } else {
-      // Random selection logic
-      const shuffledUsers = [...registeredUsers].sort(() => 0.5 - Math.random());
+      // Random selection logic using Fisher-Yates shuffle
+      const shuffledUsers = shuffle([...registeredUsers]);
       const numberOfWinners = Math.min(shuffledUsers.length, codes.length);
       const randomWinners = shuffledUsers.slice(0, numberOfWinners);
 
@@ -84,4 +103,3 @@ const assignWinnerCodeFlow = ai.defineFlow(
     };
   }
 );
-

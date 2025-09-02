@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { determineWinners } from '../actions';
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
@@ -42,6 +43,16 @@ export default function DashboardPage() {
         id,
         ...(event as Omit<LuckyEvent, 'id'>),
       })).sort((a, b) => a.startTime - b.startTime);
+
+      // Automatically determine winners for any events that have ended
+      allEvents.forEach(event => {
+        if(now > event.endTime && !event.winners) {
+            determineWinners(event.id).then(updatedEvent => {
+                 setEvents(prevEvents => prevEvents.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+            });
+        }
+      });
+      
       setEvents(allEvents);
       
       const status: Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'pending'> = {};

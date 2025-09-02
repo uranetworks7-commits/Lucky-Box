@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -14,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { DeleteEventDialog } from '@/components/lucky-draw/DeleteEventDialog';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { determineWinners } from '../actions';
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState<LuckyEvent[]>([]);
@@ -31,6 +33,15 @@ export default function AdminDashboard() {
           ...(event as Omit<LuckyEvent, 'id'>),
         })).sort((a, b) => b.startTime - a.startTime);
         setEvents(eventsList);
+        
+        // Check for events that need winners determined
+        const now = Date.now();
+        eventsList.forEach(event => {
+          if (now > event.endTime && !event.winners) {
+            determineWinners(event.id);
+          }
+        });
+        
       } else {
         setEvents([]);
       }
@@ -47,14 +58,14 @@ export default function AdminDashboard() {
   
   const getEventStatus = (event: LuckyEvent) => {
       const now = Date.now();
-      if (now > event.resultTime) {
+      if (now > event.resultTime && event.winners) {
           return <Badge variant="destructive">Ended</Badge>;
+      }
+       if (now > event.endTime) {
+          return <Badge variant="secondary">Registration Closed</Badge>;
       }
       if (now < event.startTime) {
           return <Badge variant="outline">Upcoming</Badge>;
-      }
-      if (now > event.endTime) {
-          return <Badge variant="secondary">Registration Closed</Badge>;
       }
       return <Badge className="bg-green-500 hover:bg-green-600">Live</Badge>
   }

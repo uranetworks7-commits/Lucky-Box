@@ -17,13 +17,13 @@ export async function determineWinners(eventId: string): Promise<LuckyEvent> {
   
   // If winners are already determined, just return the data.
   if (eventData.winners) {
-    return eventData;
+    return { id: eventId, ...eventData };
   }
 
   const now = Date.now();
-  // If result time has not been reached, return without determining winners.
-  if (now < eventData.resultTime) {
-      return eventData; 
+  // If registration end time has not been reached, return without determining winners.
+  if (now < eventData.endTime) {
+      return { id: eventId, ...eventData }; 
   }
   
   const registeredUsers = eventData.registeredUsers ? Object.keys(eventData.registeredUsers) : [];
@@ -34,7 +34,7 @@ export async function determineWinners(eventId: string): Promise<LuckyEvent> {
           assignedCodes: {}
       };
       await update(eventRef, updates);
-      return { ...eventData, ...updates };
+      return { id: eventId, ...eventData, ...updates };
   }
 
   const input: AssignWinnerCodeInput = {
@@ -55,7 +55,7 @@ export async function determineWinners(eventId: string): Promise<LuckyEvent> {
 
     await update(eventRef, updates);
 
-    return { ...eventData, ...updates };
+    return { id: eventId, ...eventData, ...updates };
   } catch(error) {
     console.error("Error assigning winner code:", error)
     // In case of AI error, assign no winners
@@ -64,7 +64,7 @@ export async function determineWinners(eventId: string): Promise<LuckyEvent> {
         assignedCodes: {}
     };
     await update(eventRef, updates);
-    return { ...eventData, ...updates };
+    return { id: eventId, ...eventData, ...updates };
   }
 }
 
