@@ -20,7 +20,7 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username');
+    const storedUsername = sessionStorage.getItem('username');
     if (storedUsername) {
       router.push('/dashboard');
     } else {
@@ -32,7 +32,7 @@ export default function LoginPage() {
     e.preventDefault();
     const trimmedUsername = username.trim();
     if (trimmedUsername && validUsernames.has(trimmedUsername)) {
-      localStorage.setItem('username', trimmedUsername);
+      sessionStorage.setItem('username', trimmedUsername);
       router.push('/dashboard');
     } else {
       toast({

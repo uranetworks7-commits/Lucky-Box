@@ -26,7 +26,7 @@ export default function ResultPage() {
   const [isResultReady, setIsResultReady] = useState(false);
 
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username');
+    const storedUsername = sessionStorage.getItem('username');
     if (!storedUsername) {
       router.push('/');
     } else {
@@ -63,16 +63,33 @@ export default function ResultPage() {
         });
     };
 
-    fetchResults();
-    
-    // Set up an interval to check again when the results are supposed to be ready.
-    const now = Date.now();
-    if (event && now < event.resultTime) {
-      const timeToWait = event.resultTime - now;
-      const timer = setTimeout(fetchResults, timeToWait + 1000); // add 1s buffer
-      return () => clearTimeout(timer);
-    }
-  }, [eventId, username, toast, event]);
+    // Initial fetch
+    determineWinners(eventId).then(initialEventData => {
+        setEvent(initialEventData);
+        setLoading(false);
+
+        const now = Date.now();
+        if (now >= initialEventData.resultTime) {
+            if (!initialEventData.winners) {
+                // If past result time and no winners, it means we need to trigger it.
+                 fetchResults();
+            } else {
+                setIsResultReady(true);
+                const sessionKey = `playedVideo_${eventId}`;
+                const hasPlayed = sessionStorage.getItem(sessionKey) === 'true';
+                if (!hasPlayed) {
+                    setShowVideo(true);
+                }
+            }
+        }
+        // If it's not result time yet, the countdown will handle fetching later.
+    }).catch(err => {
+        console.error(err);
+        toast({ title: 'Error', description: 'Could not fetch event data.', variant: 'destructive' });
+        setLoading(false);
+    });
+
+  }, [eventId, username, toast]);
 
   const onVideoEnd = () => {
     sessionStorage.setItem(`playedVideo_${eventId}`, 'true');
@@ -86,6 +103,13 @@ export default function ResultPage() {
       .then((eventData) => {
         setEvent(eventData);
         setIsResultReady(!!eventData.winners);
+         if (eventData.winners) {
+            const sessionKey = `playedVideo_${eventId}`;
+            const hasPlayed = sessionStorage.getItem(sessionKey) === 'true';
+            if (!hasPlayed) {
+                setShowVideo(true);
+            }
+         }
       })
       .finally(() => setLoading(false));
   }
@@ -110,7 +134,7 @@ export default function ResultPage() {
     }
     
     // Results are not ready yet, show countdown
-    if (!isResultReady) {
+    if (!isResultReady && Date.now() < event.resultTime) {
        return (
         <div className="text-center space-y-4">
             <Clock className="h-16 w-16 text-primary mx-auto" />

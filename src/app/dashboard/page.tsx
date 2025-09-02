@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username');
+    const storedUsername = sessionStorage.getItem('username');
     if (!storedUsername) {
       router.push('/');
     } else {
@@ -36,7 +36,7 @@ export default function DashboardPage() {
   }, [router]);
   
   const updateEvents = useCallback((data: any, currentUsername: string | null) => {
-    if (data) {
+    if (data && currentUsername) {
       const now = Date.now();
       const allEvents: LuckyEvent[] = Object.entries(data).map(([id, event]) => ({
         id,
@@ -44,28 +44,26 @@ export default function DashboardPage() {
       })).sort((a, b) => a.startTime - b.startTime);
       setEvents(allEvents);
       
-      if(currentUsername){
-          const status: Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'pending'> = {};
-          allEvents.forEach(event => {
-              const userEntry = Object.entries(event.registeredUsers || {}).find(([_, name]) => name === currentUsername);
-              const userId = userEntry ? userEntry[0] : null;
-              const isRegistered = !!userId;
+      const status: Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'pending'> = {};
+      allEvents.forEach(event => {
+          const userEntry = Object.entries(event.registeredUsers || {}).find(([_, name]) => name === currentUsername);
+          const userId = userEntry ? userEntry[0] : null;
+          const isRegistered = !!userId;
 
-              if (now > event.resultTime) { // Result time has passed
-                  const isWinner = !!(userId && event.winners?.includes(userId));
-                  if (isRegistered) {
-                      status[event.id] = isWinner ? 'won' : 'lost';
-                  } else {
-                      status[event.id] = 'missed';
-                  }
-              } else if (now > event.endTime) { // Event ended, waiting for results
-                  status[event.id] = 'pending';
-              } else if (isRegistered) { // Event is live or upcoming
-                  status[event.id] = 'registered';
+          if (now > event.resultTime && event.winners !== undefined) { // Result time has passed and winners are determined
+              const isWinner = !!(userId && event.winners?.includes(userId));
+              if (isRegistered) {
+                  status[event.id] = isWinner ? 'won' : 'lost';
+              } else {
+                  status[event.id] = 'missed';
               }
-          });
-          setUserEventStatus(status);
-      }
+          } else if (now > event.endTime) { // Event ended, waiting for results
+              status[event.id] = 'pending';
+          } else if (isRegistered) { // Event is live or upcoming
+              status[event.id] = 'registered';
+          }
+      });
+      setUserEventStatus(status);
     }
   }, []);
 
@@ -107,7 +105,7 @@ export default function DashboardPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('username');
+    sessionStorage.removeItem('username');
     sessionStorage.removeItem('isAdmin');
     router.push('/');
   };
@@ -181,7 +179,7 @@ export default function DashboardPage() {
                                 {now >= event.startTime && now <= event.endTime && (
                                     <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">
                                         <Box className="mr-2 h-5 w-5" />
-                                        Join Now <ArrowRight className="ml-2 h-5 w-5" />
+                                        Spin <ArrowRight className="ml-2 h-5 w-5" />
                                     </Button>
                                 )}
                           </div>
