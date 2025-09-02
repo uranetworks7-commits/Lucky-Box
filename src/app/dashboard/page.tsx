@@ -8,7 +8,7 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Box, LogOut, Ticket, History, Eye, User } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -101,34 +101,37 @@ export default function DashboardPage() {
 
         <main className="max-w-4xl mx-auto">
           <section className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-2">Upcoming Events</h2>
-            
-            <div className="grid gap-4 md:grid-cols-2">
-              {upcomingEvents.length > 0 ? (
-                upcomingEvents.map(event => (
-                  <Link href={`/event/${event.id}`} key={event.id}>
-                    <Card className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all cursor-pointer">
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                          <Box className="h-8 w-8 text-accent"/>
-                          Lucky Box
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {Date.now() < event.startTime ? (
-                          <>
-                            <Badge variant="outline">Upcoming Event</Badge>
-                            <p className="text-sm">Starts: {format(new Date(event.startTime), 'Pp')}</p>
-                          </>
-                        ) : Date.now() <= event.endTime ? (
-                          <Badge>Live Now!</Badge>
-                        ) : (
-                          <Badge variant="secondary">Registration Closed</Badge>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))
+             {upcomingEvents.length > 0 ? (
+                <>
+                    <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 flex items-center justify-center gap-3">
+                        <Gift className="h-10 w-10 text-accent" /> Lucky Box
+                    </h2>
+                    <div className="grid gap-4 md:grid-cols-2">
+                    {upcomingEvents.map(event => (
+                      <Link href={`/event/${event.id}`} key={event.id}>
+                        <Card className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all cursor-pointer h-full flex flex-col justify-center">
+                          <CardHeader>
+                            <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+                              {event.name}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-2">
+                            {Date.now() < event.startTime ? (
+                              <>
+                                <Badge variant="outline">Upcoming Event</Badge>
+                                <p className="text-sm">Starts: {format(new Date(event.startTime), 'Pp')}</p>
+                              </>
+                            ) : Date.now() <= event.endTime ? (
+                              <Badge>Live Now!</Badge>
+                            ) : (
+                              <Badge variant="secondary">Registration Closed</Badge>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                    </div>
+                </>
               ) : (
                 <Card className="w-full md:col-span-2 mx-auto bg-white/10 border-white/20 text-white">
                   <CardHeader>
@@ -140,7 +143,6 @@ export default function DashboardPage() {
                   </CardHeader>
                 </Card>
               )}
-            </div>
           </section>
 
           <section>
