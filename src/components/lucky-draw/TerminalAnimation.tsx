@@ -26,7 +26,7 @@ export function TerminalAnimation({ onComplete }: { onComplete: () => void }) {
         clearInterval(interval);
         setTimeout(onComplete, 500);
       }
-    }, 400);
+    }, 500);
 
     return () => clearInterval(interval);
   }, [onComplete]);

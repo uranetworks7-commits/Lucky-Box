@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { onValue, ref, set, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
@@ -34,6 +34,14 @@ export default function EventPage() {
     else setUsername(storedUsername);
   }, [router]);
 
+  const updateStatus = useCallback((eventData: LuckyEvent) => {
+    const now = Date.now();
+    if (now < eventData.startTime) setEventStatus('upcoming');
+    else if (now >= eventData.startTime && now <= eventData.endTime) setEventStatus('live');
+    else if (now > eventData.endTime && now < eventData.resultTime) setEventStatus('ended');
+    else setEventStatus('results');
+  }, []);
+
   useEffect(() => {
     if (!eventId) return;
     const eventRef = ref(db, `events/${eventId}`);
@@ -42,11 +50,7 @@ export default function EventPage() {
         const eventData = { id: eventId, ...snapshot.val() };
         setEvent(eventData);
         
-        const now = Date.now();
-        if (now < eventData.startTime) setEventStatus('upcoming');
-        else if (now >= eventData.startTime && now <= eventData.endTime) setEventStatus('live');
-        else if (now > eventData.endTime && now < eventData.resultTime) setEventStatus('ended');
-        else setEventStatus('results');
+        updateStatus(eventData);
         
         if (username && eventData.registeredUsers?.[username]) {
             setRegistrationStatus('registered');
@@ -57,7 +61,7 @@ export default function EventPage() {
       }
     });
     return () => unsubscribe();
-  }, [eventId, username]);
+  }, [eventId, username, updateStatus]);
   
   const handleRegister = async () => {
     if (!username || !event) return;
@@ -98,7 +102,7 @@ export default function EventPage() {
                 <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
                 <h3 className="text-2xl font-bold">Successfully Registered!</h3>
                 <p className="text-muted-foreground">The results will be revealed in:</p>
-                <Countdown to={event.resultTime} onEnd={() => setEventStatus('results')} />
+                <Countdown to={event.resultTime} onEnd={() => updateStatus(event)} />
             </div>
         )
     }
@@ -117,7 +121,7 @@ export default function EventPage() {
                 <Clock className="h-16 w-16 text-primary mx-auto" />
                 <h3 className="text-2xl font-bold">Registration Closed</h3>
                 <p className="text-muted-foreground">The event is over. Results will be announced soon.</p>
-                <Countdown to={event.resultTime} onEnd={() => setEventStatus('results')} />
+                <Countdown to={event.resultTime} onEnd={() => updateStatus(event)} />
             </div>
         );
     }

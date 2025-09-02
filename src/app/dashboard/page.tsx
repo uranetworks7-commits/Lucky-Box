@@ -3,19 +3,19 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { onValue, ref, query, orderByChild, equalTo } from 'firebase/database';
+import { onValue, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Box, LogOut, Ticket, History, Eye, Ban } from 'lucide-react';
+import { Crown, Box, LogOut, Ticket, History, Eye, Ban, User } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
-  const [currentEvent, setCurrentEvent] = useState<LuckyEvent | null>(null);
+  const [upcomingEvents, setUpcomingEvents] = useState<LuckyEvent[]>([]);
   const [pastEvents, setPastEvents] = useState<LuckyEvent[]>([]);
   const [userEventStatus, setUserEventStatus] = useState<Record<string, 'won' | 'lost' | 'missed' | 'registered'>>({});
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
@@ -41,13 +41,12 @@ export default function DashboardPage() {
         const allEvents: LuckyEvent[] = Object.entries(data).map(([id, event]) => ({
           id,
           ...(event as Omit<LuckyEvent, 'id'>),
-        })).sort((a, b) => b.startTime - a.startTime);
+        })).sort((a, b) => a.startTime - b.startTime);
 
         const upcomingAndLive = allEvents.filter(e => e.resultTime > now);
-        const latestCurrent = upcomingAndLive.sort((a,b) => a.startTime - b.startTime)[0] || null;
-        setCurrentEvent(latestCurrent);
+        setUpcomingEvents(upcomingAndLive);
 
-        const endedEvents = allEvents.filter(e => e.resultTime <= now);
+        const endedEvents = allEvents.filter(e => e.resultTime <= now).sort((a, b) => b.resultTime - a.resultTime);
         setPastEvents(endedEvents);
         
         const status: Record<string, 'won' | 'lost' | 'missed' | 'registered'> = {};
@@ -96,7 +95,9 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://i.postimg.cc/c4jzTRB3/fhdabstract101.jpg')" }}>
       <div className="min-h-screen bg-black/60 backdrop-blur-sm p-4 sm:p-6 md:p-8">
         <header className="flex justify-between items-center mb-8">
-          <h1 className="text-xl sm:text-2xl font-bold text-white">Welcome, {username}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <User /> Welcome, {username}
+          </h1>
           <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
             <LogOut className="h-5 w-5" />
           </Button>
@@ -104,38 +105,44 @@ export default function DashboardPage() {
 
         <main className="max-w-4xl mx-auto">
           <section className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-2">Lucky Box</h2>
-            <p className="text-lg text-white/80 mb-6">Your chance to win is here. Click the box to see the current event!</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-2">Lucky Box Events</h2>
+            <p className="text-lg text-white/80 mb-6">Your chance to win is here. Click a box to see the event!</p>
             
-            {currentEvent ? (
-              <Link href={`/event/${currentEvent.id}`}>
-                <Card className="w-full max-w-md mx-auto bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all cursor-pointer">
+            <div className="grid gap-4 md:grid-cols-2">
+              {upcomingEvents.length > 0 ? (
+                upcomingEvents.map(event => (
+                  <Link href={`/event/${event.id}`} key={event.id}>
+                    <Card className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all cursor-pointer">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+                          <Box className="h-8 w-8 text-accent"/>
+                          {event.name}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {Date.now() < event.startTime ? (
+                          <p>Starts: {format(new Date(event.startTime), 'Pp')}</p>
+                        ) : Date.now() <= event.endTime ? (
+                          <Badge>Live Now!</Badge>
+                        ) : (
+                          <Badge variant="secondary">Registration Closed</Badge>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))
+              ) : (
+                <Card className="w-full md:col-span-2 mx-auto bg-white/10 border-white/20 text-white">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                      <Box className="h-8 w-8 text-accent"/>
-                      {currentEvent.name}
+                      <Ticket className="h-8 w-8 text-accent" />
+                      No Active Events
                     </CardTitle>
+                    <CardDescription className="text-white/70">Check back later for new events!</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    {Date.now() < currentEvent.startTime ? (
-                      <p>Starts: {format(new Date(currentEvent.startTime), 'Pp')}</p>
-                    ) : (
-                      <Badge>Live Now!</Badge>
-                    )}
-                  </CardContent>
                 </Card>
-              </Link>
-            ) : (
-              <Card className="w-full max-w-md mx-auto bg-white/10 border-white/20 text-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                    <Ticket className="h-8 w-8 text-accent" />
-                    No Active Events
-                  </CardTitle>
-                  <CardDescription className="text-white/70">Check back later for new events!</CardDescription>
-                </CardHeader>
-              </Card>
-            )}
+              )}
+            </div>
           </section>
 
           <section>
