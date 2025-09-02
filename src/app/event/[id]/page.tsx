@@ -11,7 +11,7 @@ import { TerminalAnimation } from '@/components/lucky-draw/TerminalAnimation';
 import { Countdown } from '@/components/lucky-draw/Countdown';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CheckCircle, Clock, Loader2, Trophy, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 type EventStatus = 'loading' | 'upcoming' | 'live' | 'ended' | 'results' | 'not_found';
@@ -62,8 +62,6 @@ export default function EventPage() {
         if (username) {
             const isRegistered = Object.values(eventData.registeredUsers || {}).includes(username);
             if (isRegistered) {
-                // If we are not currently animating, set to registered.
-                // This prevents the flicker when the DB updates before animation is complete.
                 if(registrationStatus !== 'animating') {
                     setRegistrationStatus('registered');
                 }
@@ -80,24 +78,21 @@ export default function EventPage() {
   
   const handleRegister = async () => {
     if (!username || !event || registrationStatus !== 'unregistered') return;
-    setRegistrationStatus('registering');
+    setRegistrationStatus('animating'); // Start animation immediately
 
-    try {
-        const usersRef = ref(db, `events/${event.id}/registeredUsers`);
-        const newUserRef = push(usersRef);
-        await set(newUserRef, username);
-        // Start animation after successful DB write.
-        setRegistrationStatus('animating');
-    } catch (error) {
-        console.error(error);
-        toast({ title: 'Error', description: 'Registration failed. Please try again.', variant: 'destructive' });
-        setRegistrationStatus('unregistered');
-    }
-  };
-
-  const onAnimationComplete = () => {
-    toast({ title: 'Success!', description: 'You have been successfully registered for the event.' });
-    setRegistrationStatus('registered');
+    setTimeout(async () => {
+        try {
+            const usersRef = ref(db, `events/${event.id}/registeredUsers`);
+            const newUserRef = push(usersRef);
+            await set(newUserRef, username);
+            toast({ title: 'Success!', description: 'You have been successfully registered for the event.' });
+            setRegistrationStatus('registered');
+        } catch (error) {
+            console.error(error);
+            toast({ title: 'Error', description: 'Registration failed. Please try again.', variant: 'destructive' });
+            setRegistrationStatus('unregistered');
+        }
+    }, 4000); // The duration of the animation
   };
 
   const onCountdownEnd = () => {
@@ -114,9 +109,24 @@ export default function EventPage() {
     }
 
     if(registrationStatus === 'animating'){
-        return <TerminalAnimation onComplete={onAnimationComplete} />;
+        return <TerminalAnimation onComplete={() => {}} />;
     }
     
+    const resultsContent = (
+      <div className="text-center space-y-4 p-6 bg-card-foreground/5 rounded-lg border border-border">
+        <Trophy className="h-16 w-16 text-accent mx-auto" />
+        <h3 className="text-3xl font-bold text-accent">Results Are Out!</h3>
+        <p className="text-muted-foreground">The moment of truth has arrived. Click below to see if you've won a prize!</p>
+        <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/20">
+          <Link href={`/result/${eventId}`}>View My Result</Link>
+        </Button>
+      </div>
+    );
+
+    if (showResultsLink || eventStatus === 'results') {
+        return resultsContent;
+    }
+
     if (eventStatus === 'live') {
       if (registrationStatus === 'registered') {
           return (
@@ -128,29 +138,20 @@ export default function EventPage() {
               </div>
           )
       }
-      return <Button onClick={handleRegister} disabled={registrationStatus === 'registering'} size="lg" className="w-full">{registrationStatus === 'registering' ? 'Registering...' : 'Register Now'}</Button>;
+      return (
+        <div className="flex flex-col items-center justify-center space-y-4">
+            <p className="text-lg font-semibold text-primary">The event is now live!</p>
+            <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 animate-pulse">Register Now</Button>
+        </div>
+      );
     }
     
     if (eventStatus === 'upcoming') {
         return <p>This event starts on {format(new Date(event.startTime), 'Pp')}.</p>;
     }
 
-    const resultsContent = (
-      <div className="text-center space-y-4 p-6 bg-card-foreground/5 rounded-lg border border-border">
-        <Trophy className="h-16 w-16 text-accent mx-auto" />
-        <h3 className="text-3xl font-bold text-accent">Results Are Out!</h3>
-        <p className="text-muted-foreground">The moment of truth has arrived. Click below to see if you've won a prize!</p>
-        <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/20">
-          <Link href={`/result/${eventId}`}>View My Result</Link>
-        </Button>
-      </div>
-    );
-    
-    if(showResultsLink) {
-        return resultsContent;
-    }
 
-    if (eventStatus === 'ended' || (eventStatus === 'live' && registrationStatus === 'registered')) {
+    if (eventStatus === 'ended' ) {
         return (
              <div className="text-center space-y-4">
                 {registrationStatus === 'unregistered' ? (
@@ -170,18 +171,17 @@ export default function EventPage() {
             </div>
         );
     }
-
-    if (eventStatus === 'results') {
-        return resultsContent;
-    }
     
     return null; // Fallback
   }
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-muted/40 p-4">
-      <Card className="w-full max-w-lg">
-        <CardHeader className="text-center">
+      <Card className="w-full max-w-lg relative">
+        <Button asChild variant="ghost" className="absolute top-4 left-4">
+            <Link href="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" />Back</Link>
+        </Button>
+        <CardHeader className="text-center pt-16">
           <CardTitle className="text-3xl font-bold">{event?.name || 'Lucky Draw'}</CardTitle>
           <CardDescription>
             {event && (eventStatus === 'live' || eventStatus === 'upcoming') && `Registration ends: ${format(new Date(event.endTime), 'Pp')}`}

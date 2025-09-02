@@ -8,10 +8,11 @@ import type { LuckyEvent } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Users, Trophy } from 'lucide-react';
+import { ArrowLeft, Pencil, Users, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { EditCodesDialog } from '@/components/lucky-draw/EditCodesDialog';
+import Link from 'next/link';
 
 export default function EventDetailsPage() {
   const params = useParams();
@@ -47,8 +48,8 @@ export default function EventDetailsPage() {
   const winners = event.winners ? event.winners.map(userId => ({userId, username: event.registeredUsers?.[userId] || userId})) : [];
 
   return (
-    <div className="grid gap-6 md:grid-cols-3">
-      <div className="md:col-span-2 space-y-6">
+    <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+      <div className="lg:col-span-2 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Users /> Registered Users ({registeredUsers.length})</CardTitle>
@@ -90,9 +91,14 @@ export default function EventDetailsPage() {
 
       <div className="space-y-6">
         <Card>
-          <CardHeader>
-            <CardTitle>{event.name}</CardTitle>
-            <CardDescription>Event Details</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <CardTitle>{event.name}</CardTitle>
+                <CardDescription>Event Details</CardDescription>
+            </div>
+            <Button variant="outline" asChild size="sm">
+                <Link href="/admin"><ArrowLeft/> Back</Link>
+            </Button>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div><strong>Start:</strong> {format(new Date(event.startTime), 'Pp')}</div>

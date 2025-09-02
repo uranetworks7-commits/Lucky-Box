@@ -137,16 +137,16 @@ export default function DashboardPage() {
                     {upcomingEvents.map(event => (
                       <Link href={`/event/${event.id}`} key={event.id} className="group">
                         <Card className={cn(
-                            "w-full bg-black/40 border-white/20 text-white transition-all duration-300 h-full flex flex-col justify-between p-4",
+                            "w-full bg-black/40 border-white/20 text-white transition-all duration-300 h-full flex flex-col justify-between",
                             "hover:bg-black/60 hover:border-accent hover:shadow-2xl hover:shadow-accent/20",
                             event.isHighlighted && "border-accent shadow-accent/20 shadow-lg"
                         )}>
-                          <CardHeader className="p-2">
+                          <CardHeader className="p-4">
                             <CardTitle className="flex items-center justify-center gap-2 text-2xl">
                               {event.name}
                             </CardTitle>
                           </CardHeader>
-                          <CardContent className="space-y-3 p-2 text-center">
+                          <CardContent className="space-y-3 p-4 pt-0 text-center">
                             {Date.now() < event.startTime ? (
                               <div className="space-y-1">
                                 <Badge variant="outline" className="border-accent text-accent">Upcoming Event</Badge>
@@ -158,7 +158,7 @@ export default function DashboardPage() {
                               <Badge variant="secondary">Registration Closed</Badge>
                             )}
                           </CardContent>
-                          <div className="flex items-center justify-center text-accent font-semibold opacity-100">
+                          <div className="p-4 pt-0 flex items-center justify-center text-accent font-semibold opacity-100">
                                 Join Now <ArrowRight className="ml-2 h-4 w-4" />
                           </div>
                         </Card>

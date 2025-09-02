@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import type { LuckyEvent } from '@/types';
 import { Switch } from '@/components/ui/switch';
-import { PlusCircle, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Sparkles, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function CreateEventPage() {
   const [eventName, setEventName] = useState('');
@@ -81,10 +82,15 @@ export default function CreateEventPage() {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Create New Event</CardTitle>
-        <CardDescription>Fill out the details below to launch a new lucky draw event.</CardDescription>
+    <Card className="max-w-2xl mx-auto mb-8">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+            <CardTitle>Create New Event</CardTitle>
+            <CardDescription>Fill out the details below to launch a new lucky draw event.</CardDescription>
+        </div>
+         <Button variant="outline" asChild>
+          <Link href="/admin"><ArrowLeft /> Back</Link>
+        </Button>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
