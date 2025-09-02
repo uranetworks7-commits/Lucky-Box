@@ -190,7 +190,7 @@ export default function DashboardPage() {
                                 {now >= event.startTime && now <= event.endTime && (
                                     <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">
                                         <Box className="mr-2 h-5 w-5" />
-                                        Spin <ArrowRight className="ml-2 h-5 w-5" />
+                                        Registered <ArrowRight className="ml-2 h-5 w-5" />
                                     </Button>
                                 )}
                           </div>
