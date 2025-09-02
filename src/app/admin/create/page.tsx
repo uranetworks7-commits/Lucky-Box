@@ -84,10 +84,7 @@ export default function CreateEventPage() {
   return (
     <Card className="max-w-2xl mx-auto mb-8">
       <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-            <CardTitle>Create New Event</CardTitle>
-            <CardDescription>Fill out the details below to launch a new lucky draw event.</CardDescription>
-        </div>
+        <CardTitle>Create New Event</CardTitle>
          <Button variant="outline" asChild>
           <Link href="/admin"><ArrowLeft /> Back</Link>
         </Button>
