@@ -95,11 +95,11 @@ export default function EventDetailsPage() {
             <CardDescription>Event Details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <p><strong>Start:</strong> {format(new Date(event.startTime), 'Pp')}</p>
-            <p><strong>End:</strong> {format(new Date(event.endTime), 'Pp')}</p>
-            <p><strong>Results:</strong> {format(new Date(event.resultTime), 'Pp')}</p>
-            <p><strong>Mode:</strong> <Badge variant="outline">{event.selectionMode}</Badge></p>
-            {event.selectionMode === 'custom' && <p><strong>Slots:</strong> {event.winnerSlots}</p>}
+            <div><strong>Start:</strong> {format(new Date(event.startTime), 'Pp')}</div>
+            <div><strong>End:</strong> {format(new Date(event.endTime), 'Pp')}</div>
+            <div><strong>Results:</strong> {format(new Date(event.resultTime), 'Pp')}</div>
+            <div className="flex items-center gap-2"><strong>Mode:</strong> <Badge variant="outline">{event.selectionMode}</Badge></div>
+            {event.selectionMode === 'custom' && <div><strong>Slots:</strong> {event.winnerSlots}</div>}
           </CardContent>
         </Card>
         <Card>
