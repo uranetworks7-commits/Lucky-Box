@@ -46,19 +46,19 @@ const assignWinnerCodeFlow = ai.defineFlow(
         assignedCodes: {},
       };
     }
+    
+    // Shuffle users to randomize winner selection
+    const shuffledUsers = [...registeredUsers].sort(() => 0.5 - Math.random());
+    
+    // Determine the number of winners, which is the minimum of available codes and registered users.
+    const numberOfWinners = Math.min(shuffledUsers.length, codes.length);
+    
+    const winners = shuffledUsers.slice(0, numberOfWinners);
+    const assignedCodes: Record<string, string> = {};
 
-    // Always select exactly one winner randomly.
-    const winnerIndex = Math.floor(Math.random() * registeredUsers.length);
-    const winnerId = registeredUsers[winnerIndex];
-    
-    // Assign a random code to the winner.
-    const codeIndex = Math.floor(Math.random() * codes.length);
-    const assignedCode = codes[codeIndex];
-    
-    const winners: string[] = [winnerId];
-    const assignedCodes: Record<string, string> = {
-        [winnerId]: assignedCode
-    };
+    winners.forEach((winnerId, index) => {
+        assignedCodes[winnerId] = codes[index];
+    });
     
     return {
       winners,
