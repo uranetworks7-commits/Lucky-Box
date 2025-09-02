@@ -11,7 +11,7 @@ import { TerminalAnimation } from '@/components/lucky-draw/TerminalAnimation';
 import { Countdown } from '@/components/lucky-draw/Countdown';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CheckCircle, Clock, Loader2, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, Loader2, Trophy, XCircle } from 'lucide-react';
 import Link from 'next/link';
 
 type EventStatus = 'loading' | 'upcoming' | 'live' | 'ended' | 'results' | 'not_found';
@@ -136,10 +136,13 @@ export default function EventPage() {
     }
 
     const resultsContent = (
-      <div className="text-center space-y-4">
-        <h3 className="text-2xl font-bold">Results are out!</h3>
-        <p className="text-muted-foreground">Click below to see if you've won.</p>
-        <Button asChild size="lg"><Link href={`/result/${eventId}`}>View Results</Link></Button>
+      <div className="text-center space-y-4 p-6 bg-card-foreground/5 rounded-lg border border-border">
+        <Trophy className="h-16 w-16 text-accent mx-auto" />
+        <h3 className="text-3xl font-bold text-accent">Results Are Out!</h3>
+        <p className="text-muted-foreground">The moment of truth has arrived. Click below to see if you've won a prize!</p>
+        <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/20">
+          <Link href={`/result/${eventId}`}>View My Result</Link>
+        </Button>
       </div>
     );
     
