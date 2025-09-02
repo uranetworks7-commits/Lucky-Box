@@ -8,14 +8,17 @@ import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Users, Trophy } from 'lucide-react';
+import { PlusCircle, Users, Trophy, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { DeleteEventDialog } from '@/components/lucky-draw/DeleteEventDialog';
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState<LuckyEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<LuckyEvent | null>(null);
 
   useEffect(() => {
     const eventsRef = ref(db, 'events');
@@ -35,6 +38,11 @@ export default function AdminDashboard() {
 
     return () => unsubscribe();
   }, []);
+  
+  const handleDeleteClick = (event: LuckyEvent) => {
+    setSelectedEvent(event);
+    setIsDeleteDialogOpen(true);
+  }
 
   const getStatus = (event: LuckyEvent) => {
     const now = Date.now();
@@ -70,16 +78,17 @@ export default function AdminDashboard() {
                 <TableHead>Start Time</TableHead>
                 <TableHead className="text-center">Registered</TableHead>
                 <TableHead className="text-center">Winners</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">Loading events...</TableCell>
+                  <TableCell colSpan={6} className="text-center">Loading events...</TableCell>
                 </TableRow>
               ) : events.length > 0 ? (
                 events.map((event) => (
-                  <TableRow key={event.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableRow key={event.id}>
                     <TableCell className="font-medium">
                       <Link 
                         href={`/admin/event/${event.id}`} 
@@ -102,17 +111,30 @@ export default function AdminDashboard() {
                          {event.winners ? event.winners.length : 'N/A'}
                       </div>
                     </TableCell>
+                    <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(event)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <span className="sr-only">Delete event</span>
+                        </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">No events found. Create one to get started!</TableCell>
+                  <TableCell colSpan={6} className="text-center">No events found. Create one to get started!</TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+       {selectedEvent && (
+        <DeleteEventDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          event={selectedEvent}
+        />
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use server';
 
 import { assignWinnerCode, type AssignWinnerCodeInput } from '@/ai/flows/assign-winner-code';
-import { get, ref, update } from 'firebase/database';
+import { get, ref, remove, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 
@@ -59,4 +59,10 @@ export async function determineWinners(eventId: string): Promise<LuckyEvent> {
     await update(eventRef, updates);
     return { ...eventData, ...updates };
   }
+}
+
+
+export async function deleteEvent(eventId: string): Promise<void> {
+    const eventRef = ref(db, `events/${eventId}`);
+    await remove(eventRef);
 }
