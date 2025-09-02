@@ -11,7 +11,7 @@ import { TerminalAnimation } from '@/components/lucky-draw/TerminalAnimation';
 import { Countdown } from '@/components/lucky-draw/Countdown';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift } from 'lucide-react';
 import Link from 'next/link';
 
 type EventStatus = 'loading' | 'upcoming' | 'live' | 'ended' | 'results' | 'not_found';
@@ -131,7 +131,7 @@ export default function EventPage() {
       if (registrationStatus === 'registered') {
           return (
               <div className="text-center space-y-4">
-                  <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+                  <Gift className="h-16 w-16 text-green-500 mx-auto" />
                   <h3 className="text-2xl font-bold">Successfully Registered!</h3>
                   <p className="text-muted-foreground">The results will be revealed in:</p>
                   <Countdown to={event.resultTime} onEnd={onCountdownEnd} />
@@ -152,24 +152,26 @@ export default function EventPage() {
 
 
     if (eventStatus === 'ended' ) {
-        return (
-             <div className="text-center space-y-4">
-                {registrationStatus === 'unregistered' ? (
-                    <>
-                        <Clock className="h-16 w-16 text-primary mx-auto" />
-                        <h3 className="text-2xl font-bold">Registration Closed</h3>
-                        <p className="text-muted-foreground">The event is over. Results will be announced soon.</p>
-                    </>
-                ) : (
-                   <>
-                     <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-                     <h3 className="text-2xl font-bold">Successfully Registered!</h3>
-                     <p className="text-muted-foreground">The results will be revealed in:</p>
-                   </>
-                )}
-                <Countdown to={event.resultTime} onEnd={onCountdownEnd} />
-            </div>
-        );
+      const mainContent = registrationStatus === 'unregistered' ? (
+        <>
+            <Clock className="h-16 w-16 text-primary mx-auto" />
+            <h3 className="text-2xl font-bold">Registration Closed</h3>
+            <p className="text-muted-foreground">The event is over. Results will be announced soon.</p>
+        </>
+      ) : (
+        <>
+          <Gift className="h-16 w-16 text-green-500 mx-auto" />
+          <h3 className="text-2xl font-bold">Successfully Registered!</h3>
+          <p className="text-muted-foreground">The results will be revealed in:</p>
+        </>
+      );
+      
+      return (
+        <div className="text-center space-y-4">
+            {mainContent}
+            <Countdown to={event.resultTime} onEnd={onCountdownEnd} />
+        </div>
+      );
     }
     
     return null; // Fallback

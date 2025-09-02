@@ -158,8 +158,10 @@ export default function DashboardPage() {
                               <Badge variant="secondary">Registration Closed</Badge>
                             )}
                           </CardContent>
-                          <div className="p-4 pt-0 flex items-center justify-center text-accent font-semibold opacity-100">
-                                Join Now <ArrowRight className="ml-2 h-4 w-4" />
+                          <div className="p-4 pt-0">
+                                <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">
+                                    Join Now <ArrowRight className="ml-2 h-5 w-5" />
+                                </Button>
                           </div>
                         </Card>
                       </Link>
