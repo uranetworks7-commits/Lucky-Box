@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { determineWinners } from '../actions';
+import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
@@ -24,6 +25,7 @@ export default function DashboardPage() {
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
+  const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -41,16 +43,8 @@ export default function DashboardPage() {
     history.pushState(null, '', window.location.href);
 
     const handleBackButton = (event: PopStateEvent) => {
-      // Show confirmation dialog
-      const confirmExit = window.confirm('Do you want to exit?');
-      if (confirmExit) {
-        // If user confirms, allow them to go back.
-        // You might need to call history.back() if the default behavior is prevented.
-        history.back();
-      } else {
-        // If user cancels, push the state again to "cancel" the back navigation
-        history.pushState(null, '', window.location.href);
-      }
+      event.preventDefault();
+      setIsExitDialogOpen(true);
     };
 
     window.addEventListener('popstate', handleBackButton);
@@ -144,6 +138,17 @@ export default function DashboardPage() {
     localStorage.removeItem('isAdmin');
     router.push('/');
   };
+  
+  const handleExitConfirm = () => {
+    window.removeEventListener('popstate', () => {});
+    history.back();
+  };
+
+  const handleExitCancel = () => {
+    history.pushState(null, '', window.location.href);
+    setIsExitDialogOpen(false);
+  };
+
 
   const getEventStatusBadge = (eventId: string) => {
     const status = userEventStatus[eventId];
@@ -279,6 +284,12 @@ export default function DashboardPage() {
         </div>
         
         <AdminAccessDialog open={isAdminDialogOpen} onOpenChange={setIsAdminDialogOpen} />
+        <ExitConfirmationDialog 
+          open={isExitDialogOpen}
+          onOpenChange={setIsExitDialogOpen}
+          onConfirm={handleExitConfirm}
+          onCancel={handleExitCancel}
+        />
       </div>
     </div>
   );

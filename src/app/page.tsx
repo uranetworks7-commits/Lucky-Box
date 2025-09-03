@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -15,7 +16,6 @@ const validUsernames = new Set([
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -23,8 +23,6 @@ export default function LoginPage() {
     const storedUsername = localStorage.getItem('username');
     if (storedUsername) {
       router.push('/dashboard');
-    } else {
-      setLoading(false);
     }
   }, [router]);
 
@@ -42,18 +40,6 @@ export default function LoginPage() {
       });
     }
   };
-
-  if (loading) {
-    return (
-        <main className="flex items-center justify-center min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')"}}>
-            <div className="absolute inset-0 bg-black/50"></div>
-            <div className="z-10 flex flex-col items-center text-white">
-                <Loader2 className="h-8 w-8 animate-spin mb-4" />
-                <p>Loading your space...</p>
-            </div>
-        </main>
-    );
-  }
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')"}}>
