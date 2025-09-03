@@ -73,7 +73,7 @@ export default function AdminDashboard() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold">Manage Events</h2>
+        <h2 className="text-2xl md:text-3xl font-bold">Manage Events</h2>
         <div className="flex items-center gap-4">
             <Button asChild>
               <Link href="/admin/create">
@@ -90,28 +90,28 @@ export default function AdminDashboard() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Event Name</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="p-2 md:p-4">Event Name</TableHead>
+                <TableHead className="p-2 md:p-4">Date</TableHead>
+                <TableHead className="p-2 md:p-4">Status</TableHead>
+                <TableHead className="text-right p-2 md:p-4">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">Loading events...</TableCell>
+                  <TableCell colSpan={4} className="text-center p-2 md:p-4">Loading events...</TableCell>
                 </TableRow>
               ) : events.length > 0 ? (
                 events.map((event) => (
                   <TableRow key={event.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium p-2 md:p-4">
                       <span className={cn(event.isHighlighted && 'animate-golden-glow text-accent')}>
                         {event.name}
                       </span>
                     </TableCell>
-                    <TableCell>{format(new Date(event.startTime), 'MMM d, yyyy')}</TableCell>
-                    <TableCell>{getEventStatus(event)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="p-2 md:p-4">{format(new Date(event.startTime), 'MMM d, yyyy')}</TableCell>
+                    <TableCell className="p-2 md:p-4">{getEventStatus(event)}</TableCell>
+                    <TableCell className="text-right p-2 md:p-4">
                        <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">No events found. Create one to get started!</TableCell>
+                  <TableCell colSpan={4} className="text-center p-2 md:p-4">No events found. Create one to get started!</TableCell>
                 </TableRow>
               )}
             </TableBody>
