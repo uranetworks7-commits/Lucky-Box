@@ -45,9 +45,12 @@ export default function ResultPage() {
       const now = Date.now();
       if (now >= eventData.resultTime && eventData.winners !== undefined) {
         setIsResultReady(true);
+        
+        const playAnimation = localStorage.getItem('playResultAnimation') !== 'false';
         const sessionKey = `playedVideo_${eventId}`;
         const hasPlayed = localStorage.getItem(sessionKey) === 'true';
-        if (!hasPlayed) {
+        
+        if (playAnimation && !hasPlayed) {
           setShowVideo(true);
         }
       }

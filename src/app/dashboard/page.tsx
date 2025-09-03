@@ -9,7 +9,7 @@ import { db, getMessagingToken } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Bell } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Bell, Settings } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -187,13 +187,16 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')" }}>
       <div className="min-h-screen bg-black/60 p-4 sm:p-6 md:p-8">
         <header className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-              <Box className="h-8 w-8 text-accent" /> URA BOX Pro
+          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+              <Box className="h-7 w-7 text-accent" /> URA Box Pro
           </h1>
-          <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-                <User /> {username}
+          <div className="flex items-center gap-1 sm:gap-2">
+              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                <User className="h-5 w-5" /> {username}
               </h2>
+               <Button variant="ghost" size="icon" onClick={() => router.push('/settings')} className="text-white hover:bg-white/10 hover:text-white">
+                  <Settings className="h-5 w-5" />
+              </Button>
                <Button variant="ghost" size="icon" onClick={handleNotificationClick} className="text-white hover:bg-white/10 hover:text-white">
                   <Bell className="h-5 w-5" />
               </Button>
