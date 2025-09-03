@@ -12,4 +12,5 @@ export interface LuckyEvent {
   winners?: string[]; // array of firebase pushIds
   assignedCodes?: Record<string, string>; // firebase pushId: code
   isHighlighted?: boolean;
+  sendNotification?: boolean;
 }

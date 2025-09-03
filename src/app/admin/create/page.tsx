@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import type { LuckyEvent } from '@/types';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, PlusCircle, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Sparkles, Trash2, Bell } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CreateEventPage() {
@@ -25,6 +25,7 @@ export default function CreateEventPage() {
   const [customSlots, setCustomSlots] = useState<Record<number, number>>({});
   const [selectionMode, setSelectionMode] = useState<'custom' | 'random'>();
   const [isHighlighted, setIsHighlighted] = useState(false);
+  const [sendNotification, setSendNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
@@ -110,6 +111,7 @@ export default function CreateEventPage() {
       selectionMode: selectionMode,
       ...(selectionMode === 'custom' && { customWinnerSlots: customWinnerSlots }),
       isHighlighted: isHighlighted,
+      sendNotification: sendNotification,
     };
 
     try {
@@ -205,11 +207,19 @@ export default function CreateEventPage() {
             </Button>
           </div>
           
-          <div className="flex items-center space-x-2">
-            <Switch id="highlighter-mode" checked={isHighlighted} onCheckedChange={setIsHighlighted} />
-            <Label htmlFor="highlighter-mode" className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-accent" /> Highlight Event on Dashboard
-            </Label>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch id="highlighter-mode" checked={isHighlighted} onCheckedChange={setIsHighlighted} />
+              <Label htmlFor="highlighter-mode" className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-accent" /> Highlight Event on Dashboard
+              </Label>
+            </div>
+             <div className="flex items-center space-x-2">
+                <Switch id="notification-mode" checked={sendNotification} onCheckedChange={setSendNotification} />
+                <Label htmlFor="notification-mode" className="flex items-center gap-2">
+                    <Bell className="h-4 w-4 text-blue-500" /> Send Notification to All Users
+                </Label>
+            </div>
           </div>
 
           <Button type="submit" disabled={isSubmitting}>
