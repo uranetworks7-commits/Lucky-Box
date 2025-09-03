@@ -38,21 +38,20 @@ export default function DashboardPage() {
     }
   }, [router]);
 
+  const handleBackButton = useCallback((event: PopStateEvent) => {
+    event.preventDefault();
+    setIsExitDialogOpen(true);
+  }, []);
+
   useEffect(() => {
-    // Add a state to the history
+    // Add a state to the history to intercept the back button
     history.pushState(null, '', window.location.href);
-
-    const handleBackButton = (event: PopStateEvent) => {
-      event.preventDefault();
-      setIsExitDialogOpen(true);
-    };
-
     window.addEventListener('popstate', handleBackButton);
 
     return () => {
       window.removeEventListener('popstate', handleBackButton);
     };
-  }, []);
+  }, [handleBackButton]);
   
   const updateEvents = useCallback((data: any, currentUsername: string | null) => {
     if (data && currentUsername) {
@@ -140,7 +139,7 @@ export default function DashboardPage() {
   };
   
   const handleExitConfirm = () => {
-    window.removeEventListener('popstate', () => {});
+    window.removeEventListener('popstate', handleBackButton);
     history.back();
   };
 
@@ -294,3 +293,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
