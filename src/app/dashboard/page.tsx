@@ -35,6 +35,30 @@ export default function DashboardPage() {
       setUsername(storedUsername);
     }
   }, [router]);
+
+  useEffect(() => {
+    // Add a state to the history
+    history.pushState(null, '', window.location.href);
+
+    const handleBackButton = (event: PopStateEvent) => {
+      // Show confirmation dialog
+      const confirmExit = window.confirm('Do you want to exit?');
+      if (confirmExit) {
+        // If user confirms, allow them to go back.
+        // You might need to call history.back() if the default behavior is prevented.
+        history.back();
+      } else {
+        // If user cancels, push the state again to "cancel" the back navigation
+        history.pushState(null, '', window.location.href);
+      }
+    };
+
+    window.addEventListener('popstate', handleBackButton);
+
+    return () => {
+      window.removeEventListener('popstate', handleBackButton);
+    };
+  }, []);
   
   const updateEvents = useCallback((data: any, currentUsername: string | null) => {
     if (data && currentUsername) {
