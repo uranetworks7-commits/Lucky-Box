@@ -1,5 +1,6 @@
+
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
+import { getDatabase, ref, set } from "firebase/database";
 import { getMessaging, getToken } from "firebase/messaging";
 
 const firebaseConfig = {
@@ -37,6 +38,15 @@ export const getMessagingToken = async () => {
                 currentToken = await getToken(messagingInstance, {
                     vapidKey: process.env.NEXT_PUBLIC_FCM_VAPID_KEY,
                 });
+                
+                if (currentToken) {
+                    // Save the token to the Realtime Database
+                    const username = localStorage.getItem('username');
+                    if(username) {
+                        const tokenRef = ref(db, `fcmTokens/${username}`);
+                        await set(tokenRef, currentToken);
+                    }
+                }
             }
         }
     } catch (error) {
