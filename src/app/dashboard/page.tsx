@@ -173,11 +173,11 @@ export default function DashboardPage() {
               <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                 <User className="h-5 w-5" /> {username}
               </h2>
-               <Button variant="ghost" size="icon" onClick={() => router.push('/settings')} className="text-white hover:bg-white/10 hover:text-white">
-                  <Settings className="h-5 w-5" />
-              </Button>
               <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
                 <LogOut className="h-5 w-5" />
+              </Button>
+               <Button variant="ghost" size="icon" onClick={() => router.push('/settings')} className="text-white hover:bg-white/10 hover:text-white">
+                  <Settings className="h-5 w-5" />
               </Button>
           </div>
         </header>
@@ -294,5 +294,7 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
 
     
