@@ -5,15 +5,14 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { onValue, ref } from 'firebase/database';
-import { db, getMessagingToken } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Bell, Settings } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { determineWinners } from '../actions';
 import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
@@ -27,7 +26,6 @@ export default function DashboardPage() {
   const [lastClickTime, setLastClickTime] = useState(0);
   const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -132,25 +130,6 @@ export default function DashboardPage() {
     setLastClickTime(now);
   };
   
-  const handleNotificationClick = async () => {
-    const token = await getMessagingToken();
-    if (token) {
-      console.log('FCM Token:', token);
-      // In a real app, you would send this token to your server
-      // and associate it with the current user.
-      toast({
-          title: "Notifications Enabled!",
-          description: "You will now receive notifications for new events."
-      });
-    } else {
-       toast({
-          title: "Notifications Blocked",
-          description: "Please enable notifications in your browser settings to receive updates.",
-          variant: "destructive"
-      });
-    }
-  }
-
   const handleLogout = () => {
     localStorage.removeItem('username');
     localStorage.removeItem('isAdmin');
@@ -196,9 +175,6 @@ export default function DashboardPage() {
               </h2>
                <Button variant="ghost" size="icon" onClick={() => router.push('/settings')} className="text-white hover:bg-white/10 hover:text-white">
                   <Settings className="h-5 w-5" />
-              </Button>
-               <Button variant="ghost" size="icon" onClick={handleNotificationClick} className="text-white hover:bg-white/10 hover:text-white">
-                  <Bell className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
                 <LogOut className="h-5 w-5" />
@@ -318,3 +294,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
