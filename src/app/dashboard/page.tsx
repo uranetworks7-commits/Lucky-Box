@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { onValue, ref } from 'firebase/database';
-import { db } from '@/lib/firebase';
+import { db, getMessagingToken } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -132,11 +132,23 @@ export default function DashboardPage() {
     setLastClickTime(now);
   };
   
-  const handleNotificationClick = () => {
+  const handleNotificationClick = async () => {
+    const token = await getMessagingToken();
+    if (token) {
+      console.log('FCM Token:', token);
+      // In a real app, you would send this token to your server
+      // and associate it with the current user.
       toast({
-          title: "Notifications",
-          description: "This feature is coming soon! You'll be able to get notified about new events."
+          title: "Notifications Enabled!",
+          description: "You will now receive notifications for new events."
       });
+    } else {
+       toast({
+          title: "Notifications Blocked",
+          description: "Please enable notifications in your browser settings to receive updates.",
+          variant: "destructive"
+      });
+    }
   }
 
   const handleLogout = () => {

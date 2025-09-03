@@ -1,5 +1,6 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
+import { getMessaging, getToken } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA3BcsYHFGcwgsNp8-p0U5HXZeAIMiYR0Q",
@@ -11,5 +12,36 @@ const firebaseConfig = {
   appId: "1:475728173031:web:63e0e891c6651bf96ecf42"
 };
 
-const app = initializeApp(firebaseConfig);
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const db = getDatabase(app);
+
+// Get a messaging instance.
+export const messaging = (async () => {
+    if (typeof window !== 'undefined') {
+        const { getMessaging } = await import('firebase/messaging');
+        return getMessaging(app);
+    }
+    return null;
+})();
+
+
+export const getMessagingToken = async () => {
+    let currentToken = '';
+    if (!messaging) return;
+
+    try {
+        const messagingInstance = await messaging;
+        if (messagingInstance) {
+            const status = await Notification.requestPermission();
+            if (status && status === 'granted') {
+                currentToken = await getToken(messagingInstance, {
+                    vapidKey: process.env.NEXT_PUBLIC_FCM_VAPID_KEY,
+                });
+            }
+        }
+    } catch (error) {
+        console.error('An error occurred while retrieving token. ', error);
+    }
+
+    return currentToken;
+};
