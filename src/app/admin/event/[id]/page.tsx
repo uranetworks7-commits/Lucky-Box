@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -46,6 +47,8 @@ export default function EventDetailsPage() {
   
   const registeredUsers = event.registeredUsers ? Object.values(event.registeredUsers) : [];
   const winners = event.winners ? event.winners.map(userId => ({userId, username: event.registeredUsers?.[userId] || userId})) : [];
+  
+  const customSlots = event.customWinnerSlots ? Object.values(event.customWinnerSlots).sort((a,b) => a-b).join(', ') : 'N/A';
 
   return (
     <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
@@ -105,7 +108,7 @@ export default function EventDetailsPage() {
             <div><strong>End:</strong> {format(new Date(event.endTime), 'Pp')}</div>
             <div><strong>Results:</strong> {format(new Date(event.resultTime), 'Pp')}</div>
             <div className="flex items-center gap-2"><strong>Mode:</strong> <Badge variant="outline">{event.selectionMode}</Badge></div>
-            {event.selectionMode === 'custom' && <div><strong>Slots:</strong> {event.winnerSlots}</div>}
+            {event.selectionMode === 'custom' && <div><strong>Slots:</strong> {customSlots}</div>}
           </CardContent>
         </Card>
         <Card>
