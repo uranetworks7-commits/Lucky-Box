@@ -20,7 +20,7 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const storedUsername = sessionStorage.getItem('username');
+    const storedUsername = localStorage.getItem('username');
     if (storedUsername) {
       router.push('/dashboard');
     } else {
@@ -32,7 +32,7 @@ export default function LoginPage() {
     e.preventDefault();
     const trimmedUsername = username.trim();
     if (trimmedUsername && validUsernames.has(trimmedUsername)) {
-      sessionStorage.setItem('username', trimmedUsername);
+      localStorage.setItem('username', trimmedUsername);
       router.push('/dashboard');
     } else {
       toast({
@@ -60,7 +60,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-black/50"></div>
         <Card className="w-full max-w-sm z-10">
             <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-bold">Lucky Draw</CardTitle>
+                <CardTitle className="text-2xl font-bold">URA Box</CardTitle>
                 <CardDescription>Enter your username to join the fun!</CardDescription>
             </CardHeader>
             <form onSubmit={handleLogin}>

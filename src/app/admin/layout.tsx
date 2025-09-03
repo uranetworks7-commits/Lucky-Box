@@ -16,7 +16,7 @@ export default function AdminLayout({
   const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
-    const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
     if (!isAdmin) {
       router.replace('/dashboard');
     } else {
@@ -25,7 +25,7 @@ export default function AdminLayout({
   }, [router]);
   
   const handleLogout = () => {
-    sessionStorage.removeItem('isAdmin');
+    localStorage.removeItem('isAdmin');
     router.push('/dashboard');
   }
 

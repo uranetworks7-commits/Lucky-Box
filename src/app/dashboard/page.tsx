@@ -28,7 +28,7 @@ export default function DashboardPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const storedUsername = sessionStorage.getItem('username');
+    const storedUsername = localStorage.getItem('username');
     if (!storedUsername) {
       router.push('/');
     } else {
@@ -116,8 +116,8 @@ export default function DashboardPage() {
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('username');
-    sessionStorage.removeItem('isAdmin');
+    localStorage.removeItem('username');
+    localStorage.removeItem('isAdmin');
     router.push('/');
   };
 

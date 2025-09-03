@@ -28,7 +28,7 @@ export function AdminAccessDialog({ open, onOpenChange }: AdminAccessDialogProps
 
   const handleAccess = () => {
     if (key === SECURITY_KEY) {
-      sessionStorage.setItem('isAdmin', 'true');
+      localStorage.setItem('isAdmin', 'true');
       router.push('/admin');
     } else {
       toast({

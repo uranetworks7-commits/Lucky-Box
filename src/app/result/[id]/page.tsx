@@ -28,7 +28,7 @@ export default function ResultPage() {
   const [isResultReady, setIsResultReady] = useState(false);
 
   useEffect(() => {
-    const storedUsername = sessionStorage.getItem('username');
+    const storedUsername = localStorage.getItem('username');
     if (!storedUsername) {
       router.push('/');
     } else {
@@ -46,7 +46,7 @@ export default function ResultPage() {
       if (now >= eventData.resultTime && eventData.winners !== undefined) {
         setIsResultReady(true);
         const sessionKey = `playedVideo_${eventId}`;
-        const hasPlayed = sessionStorage.getItem(sessionKey) === 'true';
+        const hasPlayed = localStorage.getItem(sessionKey) === 'true';
         if (!hasPlayed) {
           setShowVideo(true);
         }
@@ -83,7 +83,7 @@ export default function ResultPage() {
   }, [eventId, username]);
 
   const onVideoEnd = () => {
-    sessionStorage.setItem(`playedVideo_${eventId}`, 'true');
+    localStorage.setItem(`playedVideo_${eventId}`, 'true');
     setShowVideo(false);
   }
   

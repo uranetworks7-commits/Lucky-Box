@@ -32,7 +32,7 @@ export default function EventPage() {
   const [registrationSuccess, setRegistrationSuccess] = useState(true);
 
   useEffect(() => {
-    const storedUsername = sessionStorage.getItem('username');
+    const storedUsername = localStorage.getItem('username');
     if (!storedUsername) router.push('/');
     else setUsername(storedUsername);
   }, [router]);
