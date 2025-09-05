@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { determineWinners } from '../actions';
+import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
@@ -23,6 +24,7 @@ export default function DashboardPage() {
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
+  const [isExitConfirmationDialogOpen, setIsExitConfirmationDialogOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -36,11 +38,10 @@ export default function DashboardPage() {
 
   const handleBackButton = useCallback((event: PopStateEvent) => {
     event.preventDefault();
-    router.replace('/');
-  }, [router]);
+    setIsExitConfirmationDialogOpen(true);
+  }, []);
 
   useEffect(() => {
-    // Add a state to the history to intercept the back button
     history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', handleBackButton);
 
@@ -132,6 +133,16 @@ export default function DashboardPage() {
     localStorage.removeItem('username');
     localStorage.removeItem('isAdmin');
     router.push('/');
+  };
+
+  const handleExitConfirm = () => {
+    router.replace('/');
+  };
+
+  const handleExitCancel = () => {
+    // We need to push the state again to re-enable the popstate listener
+    history.pushState(null, '', window.location.href);
+    setIsExitConfirmationDialogOpen(false);
   };
 
   const getEventStatusBadge = (eventId: string) => {
@@ -283,6 +294,12 @@ export default function DashboardPage() {
         </div>
         
         <AdminAccessDialog open={isAdminDialogOpen} onOpenChange={setIsAdminDialogOpen} />
+        <ExitConfirmationDialog 
+            open={isExitConfirmationDialogOpen} 
+            onOpenChange={setIsExitConfirmationDialogOpen}
+            onConfirm={handleExitConfirm}
+            onCancel={handleExitCancel}
+        />
       </div>
     </div>
   );
