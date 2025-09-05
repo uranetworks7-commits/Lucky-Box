@@ -278,16 +278,17 @@ export default function DashboardPage() {
                 </Card>
               )}
             </div>
-             <div className="mt-8 text-center">
-                <Button size="lg" asChild className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold shadow-lg hover:shadow-xl transition-shadow">
-                    <Link href="/activities">
-                        <Star className="mr-2 h-5 w-5"/>
-                        Earn XP
-                    </Link>
-                </Button>
-            </div>
           </section>
         </main>
+        
+        <div className="fixed bottom-4 left-4">
+             <Button size="lg" asChild className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold shadow-lg hover:shadow-xl transition-shadow">
+                <Link href="/activities">
+                    <Star className="mr-2 h-5 w-5"/>
+                    Earn XP
+                </Link>
+            </Button>
+        </div>
         
         <div className="fixed bottom-4 right-4">
             <Button variant="ghost" size="icon" onClick={handleAdminAccessClick} className="text-white bg-black/50 hover:bg-white/20 rounded-full h-12 w-12">
@@ -306,3 +307,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
