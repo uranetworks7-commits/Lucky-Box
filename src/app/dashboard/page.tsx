@@ -9,7 +9,7 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Star } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Star, Zap } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -176,10 +176,10 @@ export default function DashboardPage() {
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                 <User className="h-5 w-5" /> {username}
+                 <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
+                    <LogOut className="h-5 w-5" />
+                 </Button>
               </h2>
-              <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
-                <LogOut className="h-5 w-5" />
-              </Button>
                <Button variant="ghost" size="icon" onClick={() => router.push('/settings')} className="text-white hover:bg-white/10 hover:text-white">
                   <Settings className="h-5 w-5" />
               </Button>
@@ -282,10 +282,10 @@ export default function DashboardPage() {
         </main>
         
         <div className="fixed bottom-4 left-4">
-             <Button size="lg" asChild className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold shadow-lg hover:shadow-xl transition-shadow">
+             <Button size="lg" asChild className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-bold shadow-lg hover:shadow-xl transition-shadow">
                 <Link href="/activities">
-                    <Star className="mr-2 h-5 w-5"/>
-                    Earn XP
+                    <Zap className="mr-2 h-5 w-5"/>
+                    Earn XP ⚡
                 </Link>
             </Button>
         </div>
