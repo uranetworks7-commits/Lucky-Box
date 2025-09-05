@@ -2,7 +2,7 @@
 'use server';
 
 import { assignWinnerCode, type AssignWinnerCodeInput } from '@/ai/flows/assign-winner-code';
-import { get, ref, remove, runTransaction, update } from 'firebase/database';
+import { get, ref, remove, runTransaction, update, push } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import type { LuckyEvent, QuizOrPoll, UserData } from '@/types';
 import { createUserIfNotExists } from '@/lib/firebase';
@@ -89,69 +89,46 @@ export async function submitQuizAnswer(
     
     try {
         const userPushId = await createUserIfNotExists(username);
-        let awardedXp = 0;
 
-        const result = await runTransaction(quizRef, (quiz: QuizOrPoll | null) => {
-            if (!quiz) return; // Abort if quiz doesn't exist
-
-            const now = Date.now();
-            if (now < quiz.startTime || now > quiz.endTime) {
-                return; // Abort transaction if activity is not live
-            }
-
-            if (!quiz.submissions) {
-                quiz.submissions = {};
-            }
-            
-            // Abort if user has already submitted by checking the pushId
-            if (Object.values(quiz.submissions).some(s => s.username === username)) {
-                return; // Abort, user already submitted
-            }
-            
-            // Record the new submission with a unique key
-            const submissionKey = push(ref(db, `quizzes/${quizId}/submissions`)).key;
-            if(!submissionKey) return; // Could not generate key
-
-            quiz.submissions[submissionKey] = {
-                username,
-                answers,
-                submittedAt: now,
-            };
-
-            awardedXp = quiz.xp;
-            return quiz;
-        });
-
-        // After the transaction, check if it was successful and then update the user's XP.
-        if (result.committed && awardedXp > 0) {
-            const userRef = ref(db, `users/${userPushId}`);
-            await runTransaction(userRef, (user: UserData | null) => {
-                if (user) {
-                    user.xp = (user.xp || 0) + awardedXp;
-                }
-                return user;
-            });
-            return { success: true, message: `Congratulations! You've earned ${awardedXp} XP.` };
-        } 
+        // Fetch the current quiz data first to perform checks
+        const quizSnapshot = await get(quizRef);
+        if (!quizSnapshot.exists()) {
+             return { success: false, message: 'This activity does not exist.' };
+        }
         
-        // Handle cases where the transaction was aborted (e.g., already submitted)
-        if (!result.committed) {
-             const snapshot = await get(quizRef);
-             const quiz = snapshot.val();
-             const now = Date.now();
-             if (now < quiz.startTime || now > quiz.endTime) {
-                return { success: false, message: 'This activity is not currently active.' };
-             }
-             if (quiz.submissions && Object.values(quiz.submissions).some((s:any) => s.username === username)) {
-                 return { success: false, message: 'You have already submitted an answer for this activity.' };
-             }
+        const quiz: QuizOrPoll = quizSnapshot.val();
+
+        // Check if activity is live
+        const now = Date.now();
+        if (now < quiz.startTime || now > quiz.endTime) {
+            return { success: false, message: 'This activity is not currently active.' };
+        }
+        
+        // Check if user has already submitted
+        if (quiz.submissions && Object.values(quiz.submissions).some(s => s.username === username)) {
+            return { success: false, message: 'You have already submitted an answer for this activity.' };
         }
 
-        // Fallback for any other scenario
-        return { success: false, message: 'Could not submit your answer.' };
+        const awardedXp = quiz.xp;
+
+        // Atomically update quiz submissions and user XP
+        const submissionKey = push(ref(db, `quizzes/${quizId}/submissions`)).key;
+        if (!submissionKey) throw new Error("Could not generate submission key");
+
+        const updates: Record<string, any> = {};
+        updates[`/quizzes/${quizId}/submissions/${submissionKey}`] = { username, answers, submittedAt: now };
+        
+        const userRef = ref(db, `users/${userPushId}`);
+        const userSnapshot = await get(userRef);
+        const currentXp = userSnapshot.exists() ? (userSnapshot.val() as UserData).xp : 0;
+        updates[`/users/${userPushId}/xp`] = currentXp + awardedXp;
+
+        await update(ref(db), updates);
+
+        return { success: true, message: `Congratulations! You've earned ${awardedXp} XP.` };
 
     } catch (error) {
         console.error("Error submitting quiz answer:", error);
-        return { success: false, message: 'An unknown error occurred while submitting your answer.' };
+        return { success: false, message: 'Could not submit your answer.' };
     }
 }
