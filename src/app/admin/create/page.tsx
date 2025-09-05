@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import type { LuckyEvent } from '@/types';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, PlusCircle, Sparkles, Trash2, Bell } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Sparkles, Trash2, Bell, Star } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CreateEventPage() {
@@ -27,6 +27,7 @@ export default function CreateEventPage() {
   const [isHighlighted, setIsHighlighted] = useState(false);
   const [sendNotification, setSendNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requiredXp, setRequiredXp] = useState<number | undefined>();
 
   const router = useRouter();
   const { toast } = useToast();
@@ -112,6 +113,7 @@ export default function CreateEventPage() {
       ...(selectionMode === 'custom' && { customWinnerSlots: customWinnerSlots }),
       isHighlighted: isHighlighted,
       sendNotification: sendNotification,
+      ...(requiredXp && { requiredXp }),
     };
 
     try {
@@ -155,6 +157,22 @@ export default function CreateEventPage() {
               <Input id="result-time" type="datetime-local" value={resultTime} onChange={(e) => setResultTime(e.target.value)} required />
             </div>
           </div>
+          
+           <div className="space-y-2">
+                <Label htmlFor="required-xp">Required XP (Optional)</Label>
+                <div className="relative">
+                    <Star className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                    <Input 
+                        id="required-xp" 
+                        type="number" 
+                        min="0"
+                        placeholder="e.g. 100" 
+                        value={requiredXp || ''}
+                        onChange={(e) => setRequiredXp(e.target.value ? Number(e.target.value) : undefined)}
+                        className="pl-8"
+                    />
+                </div>
+            </div>
 
           <div className="space-y-2">
             <Label>Selection Mode</Label>
