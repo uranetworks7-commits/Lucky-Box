@@ -82,7 +82,7 @@ export default function QuizResultsPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Username</TableHead>
-                            {activity.questions.map((q, i) => <TableHead key={i}>Q{i+1}: {q.question}</TableHead>)}
+                            {activity.questions.map((q, i) => <TableHead key={i}>Q{i+1}</TableHead>)}
                             <TableHead>Submitted At</TableHead>
                         </TableRow>
                     </TableHeader>
