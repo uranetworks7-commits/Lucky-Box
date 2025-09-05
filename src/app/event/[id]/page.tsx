@@ -93,11 +93,11 @@ export default function EventPage() {
     if (event.requiredXp && event.requiredXp > 0) {
         setRegistrationStatus('registering');
         try {
-            const userQuery = query(ref(db, 'users'), orderByChild('username'), equalTo(username));
-            const userSnapshot = await get(userQuery);
+            const userRef = ref(db, `users/${username}`);
+            const userSnapshot = await get(userRef);
             let userXp = 0;
             if(userSnapshot.exists()){
-                const userData = Object.values(userSnapshot.val())[0] as UserData;
+                const userData = userSnapshot.val() as UserData;
                 userXp = userData.xp || 0;
             }
 
@@ -193,7 +193,7 @@ export default function EventPage() {
           <Sparkles className="h-16 w-16 text-red-400 mx-auto animate-pulse" />
           <h3 className="text-3xl font-bold text-white">The Event is LIVE!</h3>
           <p className="text-red-200/90">Your chance to win is now. Don't miss out!</p>
-          {event.requiredXp ? (
+          {event.requiredXp && event.requiredXp > 0 ? (
             <div className="flex justify-center items-center gap-2 text-sm text-yellow-300 bg-black/30 py-1 px-3 rounded-full">
                 <Star className="h-4 w-4" />
                 <span>Requires {event.requiredXp} XP</span>

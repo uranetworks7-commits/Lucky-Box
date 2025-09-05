@@ -9,7 +9,7 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Zap } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Zap, Star } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -216,6 +216,13 @@ export default function DashboardPage() {
                             ) : (
                                <Badge className="bg-red-500 hover:bg-red-600 animate-pulse text-base py-1 px-4">Live Now!</Badge>
                             )}
+                             <div className="!mt-4">
+                                {event.requiredXp && event.requiredXp > 0 ? (
+                                    <Badge variant="outline" className="text-yellow-300 border-yellow-300/50"><Star className="h-3 w-3 mr-1.5"/>{event.requiredXp} XP Required</Badge>
+                                ) : (
+                                    <Badge variant="outline" className="text-green-300 border-green-300/50">Free to Join</Badge>
+                                )}
+                             </div>
                           </CardContent>
                           <div className="p-4 pt-0">
                                 {now >= event.startTime && now <= event.endTime && (
@@ -261,7 +268,15 @@ export default function DashboardPage() {
                   <Card key={event.id} className="bg-black/30 border-white/10 text-white backdrop-blur-sm">
                     <CardHeader className="p-4">
                       <CardTitle className="flex justify-between items-center">
-                        {event.name}
+                        <div className="flex flex-col">
+                            <span>{event.name}</span>
+                            {event.requiredXp && event.requiredXp > 0 && (
+                                <span className="text-xs font-normal flex items-center gap-1 text-yellow-400 mt-1">
+                                    <Star className="h-3 w-3"/>
+                                    {event.requiredXp} XP Required
+                                </span>
+                            )}
+                        </div>
                         {getEventStatusBadge(event.id)}
                       </CardTitle>
                       <CardDescription className="text-white/60 pt-1">
@@ -304,5 +319,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
