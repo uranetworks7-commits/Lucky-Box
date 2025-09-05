@@ -103,13 +103,16 @@ export async function submitQuizAnswer(
                 quiz.submissions = {};
             }
             
-            // Abort if user has already submitted
-            if (quiz.submissions[userPushId]) {
-                return;
+            // Abort if user has already submitted by checking the pushId
+            if (Object.values(quiz.submissions).some(s => s.username === username)) {
+                return; // Abort, user already submitted
             }
             
-            // Record the new submission
-            quiz.submissions[userPushId] = {
+            // Record the new submission with a unique key
+            const submissionKey = push(ref(db, `quizzes/${quizId}/submissions`)).key;
+            if(!submissionKey) return; // Could not generate key
+
+            quiz.submissions[submissionKey] = {
                 username,
                 answers,
                 submittedAt: now,
@@ -126,7 +129,6 @@ export async function submitQuizAnswer(
                 if (user) {
                     user.xp = (user.xp || 0) + awardedXp;
                 }
-                // User is created by createUserIfNotExists if they don't exist
                 return user;
             });
             return { success: true, message: `Congratulations! You've earned ${awardedXp} XP.` };
@@ -140,7 +142,9 @@ export async function submitQuizAnswer(
              if (now < quiz.startTime || now > quiz.endTime) {
                 return { success: false, message: 'This activity is not currently active.' };
              }
-             return { success: false, message: 'You have already submitted an answer for this activity.' };
+             if (quiz.submissions && Object.values(quiz.submissions).some((s:any) => s.username === username)) {
+                 return { success: false, message: 'You have already submitted an answer for this activity.' };
+             }
         }
 
         // Fallback for any other scenario

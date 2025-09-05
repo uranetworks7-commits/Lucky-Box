@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { onValue, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import type { QuizOrPoll, Question } from '@/types';
+import type { QuizOrPoll, Question, Submission } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -31,7 +31,7 @@ export default function QuizPage() {
   const [status, setStatus] = useState<PageStatus>('loading');
   const [answers, setAnswers] = useState<(string | number)[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userSubmission, setUserSubmission] = useState<{answers: (string | number)[]} | null>(null);
+  const [userSubmission, setUserSubmission] = useState<Submission | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function QuizPage() {
         }
 
         const now = Date.now();
-        const submission = Object.values(data.submissions || {}).find(sub => sub.username === username);
+        const submission = data.submissions ? Object.values(data.submissions).find(sub => sub.username === username) : null;
 
         if (submission) {
           setStatus('submitted');
@@ -174,7 +174,7 @@ export default function QuizPage() {
                 </div>
             ))}
             <div className="text-center font-bold p-3 rounded-md bg-green-500/20 text-green-700">
-                Thank you for your submission! You earned {activity?.xp} XP.
+                You have already submitted for this activity!
             </div>
         </div>
     )

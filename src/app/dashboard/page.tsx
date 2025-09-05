@@ -211,17 +211,20 @@ export default function DashboardPage() {
                     </h2>
                     <div className="grid gap-6 md:grid-cols-2">
                     {upcomingEvents.map(event => (
-                      <Link href={`/event/${event.id}`} key={event.id} className="group">
+                      <Link href={`/event/${event.id}`} key={event.id} className="group relative">
+                        {event.requiredXp && event.requiredXp > 0 && (
+                             <Badge variant="outline" className={cn("absolute top-2 left-2 text-yellow-300 border-yellow-300/50 bg-black/50 flex items-center gap-1.5",
+                             now < event.startTime ? "text-yellow-300 border-yellow-300/50" : "text-blue-300 border-blue-300/50"
+                             )}>
+                                <Zap className="h-3 w-3"/>{event.requiredXp}
+                            </Badge>
+                        )}
                         <Card className={cn(
-                            "w-full bg-black/40 border-white/20 text-white transition-all duration-300 h-full flex flex-col justify-between relative",
+                            "w-full bg-black/40 border-white/20 text-white transition-all duration-300 h-full flex flex-col justify-between",
                             "hover:bg-black/60 hover:border-accent hover:shadow-2xl hover:shadow-accent/20",
                             event.isHighlighted && "border-accent shadow-accent/20 shadow-lg"
                         )}>
-                          {event.requiredXp && event.requiredXp > 0 && (
-                            <Badge variant="outline" className="absolute top-2 left-2 text-blue-300 border-blue-300/50 bg-black/50 flex items-center gap-1.5">
-                                <Zap className="h-3 w-3"/>{event.requiredXp}
-                            </Badge>
-                           )}
+                          
                           <CardHeader className="p-4">
                             <CardTitle className={cn("flex items-center justify-center gap-2 text-2xl", event.isHighlighted && 'animate-golden-glow text-accent')}>
                               {event.name}
