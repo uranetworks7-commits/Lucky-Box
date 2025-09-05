@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { onValue, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import type { QuizOrPoll, Submission } from '@/types';
+import type { QuizOrPoll, Submission, Question } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -40,12 +40,12 @@ export default function QuizResultsPage() {
     return () => unsubscribe();
   }, [quizId]);
   
-  const getAnswerText = (submission: Submission) => {
-      if (activity && (activity.questionType === 'mcq' || activity.questionType === 'poll')) {
-          const optionIndex = Number(submission.answer);
-          return activity.options?.[optionIndex] ?? 'Invalid Option';
+  const getAnswerText = (question: Question, answer: string | number) => {
+      if (question && (question.questionType === 'mcq' || question.questionType === 'poll')) {
+          const optionIndex = Number(answer);
+          return question.options?.[optionIndex] ?? 'Invalid Option';
       }
-      return submission.answer.toString();
+      return answer.toString();
   }
 
   if (loading) {
@@ -77,30 +77,32 @@ export default function QuizResultsPage() {
           </CardHeader>
           <CardContent>
              <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground"><Users /> {submissions.length} total submissions</div>
-             <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>#</TableHead>
-                        <TableHead>Username</TableHead>
-                        <TableHead>Answer</TableHead>
-                        <TableHead>Submitted At</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {submissions.length > 0 ? submissions.map((sub, i) => (
-                        <TableRow key={i}>
-                            <TableCell>{i + 1}</TableCell>
-                            <TableCell>{sub.username}</TableCell>
-                            <TableCell>{getAnswerText(sub)}</TableCell>
-                            <TableCell>{format(new Date(sub.submittedAt), 'Pp')}</TableCell>
+             {submissions.length > 0 ? (
+                 <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Username</TableHead>
+                            {activity.questions.map((q, i) => <TableHead key={i}>Q{i+1}: {q.question}</TableHead>)}
+                            <TableHead>Submitted At</TableHead>
                         </TableRow>
-                    )) : <TableRow><TableCell colSpan={4} className="text-center">No submissions yet.</TableCell></TableRow>}
-                </TableBody>
-             </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {submissions.map((sub, i) => (
+                            <TableRow key={i}>
+                                <TableCell>{sub.username}</TableCell>
+                                {activity.questions.map((q, qIndex) => (
+                                    <TableCell key={qIndex}>{getAnswerText(q, sub.answers[qIndex])}</TableCell>
+                                ))}
+                                <TableCell>{format(new Date(sub.submittedAt), 'Pp')}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                 </Table>
+             ) : (
+                <div className="text-center text-muted-foreground p-8">No submissions yet.</div>
+             )}
           </CardContent>
         </Card>
     </div>
   );
 }
-
-    

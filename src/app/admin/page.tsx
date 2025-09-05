@@ -104,7 +104,7 @@ export default function AdminDashboard() {
             </Button>
             <Button asChild variant="outline" size="sm" className="h-7 px-2 text-xs">
               <Link href="/admin/create-quiz">
-                <HelpCircle className="mr-1 h-3 w-3" /> Create Quiz/Poll
+                <HelpCircle className="mr-1 h-3 w-3" /> Create Activity
               </Link>
             </Button>
         </div>
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
             <TableHeader>
               <TableRow>
                 <TableHead className="h-8 px-2 text-xs">Title</TableHead>
-                <TableHead className="h-8 px-2 text-xs">Type</TableHead>
+                <TableHead className="h-8 px-2 text-xs"># Questions</TableHead>
                  <TableHead className="h-8 px-2 text-xs">XP</TableHead>
                 <TableHead className="h-8 px-2 text-xs">Status</TableHead>
                 <TableHead className="text-right h-8 px-2 text-xs">Actions</TableHead>
@@ -193,13 +193,13 @@ export default function AdminDashboard() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center px-2 py-1 text-xs">Loading quizzes...</TableCell>
+                  <TableCell colSpan={5} className="text-center px-2 py-1 text-xs">Loading activities...</TableCell>
                 </TableRow>
               ) : quizzes.length > 0 ? (
                 quizzes.map((quiz) => (
                   <TableRow key={quiz.id}>
                     <TableCell className="font-medium px-2 py-1 text-xs">{quiz.title}</TableCell>
-                    <TableCell className="px-2 py-1 text-xs"><Badge variant="secondary" className="capitalize text-xs">{quiz.questionType}</Badge></TableCell>
+                    <TableCell className="px-2 py-1 text-xs">{quiz.questions?.length || 0}</TableCell>
                     <TableCell className="px-2 py-1 text-xs">{quiz.xp}</TableCell>
                     <TableCell className="px-2 py-1 text-xs">{getActivityStatus(quiz)}</TableCell>
                     <TableCell className="text-right px-2 py-1 text-xs">
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center px-2 py-1 text-xs">No quizzes or polls found. Create one to get started!</TableCell>
+                  <TableCell colSpan={5} className="text-center px-2 py-1 text-xs">No activities found. Create one to get started!</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -256,5 +256,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-
-    

@@ -1,5 +1,4 @@
 
-
 export interface LuckyEvent {
   id: string;
   name: string;
@@ -19,9 +18,17 @@ export interface LuckyEvent {
 
 export type QuestionType = 'poll' | 'mcq' | 'descriptive' | 'image';
 
+export interface Question {
+  questionType: QuestionType;
+  question: string;
+  imageUrl?: string;
+  options?: string[]; // For MCQ and Poll
+  correctAnswer?: number | null; // For MCQ - index of correct answer
+}
+
 export interface Submission {
   username: string;
-  answer: string | number; // string for descriptive, number for mcq/poll index
+  answers: (string | number)[];
   submittedAt: number;
 }
 
@@ -31,11 +38,7 @@ export interface QuizOrPoll {
     startTime: number;
     endTime: number;
     xp: number;
-    questionType: QuestionType;
-    question: string;
-    imageUrl?: string;
-    options?: string[]; // For MCQ and Poll
-    correctAnswer?: number | null; // For MCQ - index of correct answer
+    questions: Question[];
     submissions?: Record<string, Submission>; // userPushId: submission
 }
 
@@ -45,5 +48,3 @@ export interface UserData {
     xp: number;
     // other user data can go here
 }
-
-    

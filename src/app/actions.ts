@@ -83,7 +83,7 @@ export async function deleteQuiz(quizId: string): Promise<void> {
 export async function submitQuizAnswer(
     quizId: string,
     username: string,
-    answer: string | number
+    answers: (string | number)[]
 ): Promise<{success: boolean, message: string}> {
     const quizRef = ref(db, `quizzes/${quizId}`);
     
@@ -114,7 +114,7 @@ export async function submitQuizAnswer(
                 
                 quiz.submissions[userPushId] = {
                     username,
-                    answer,
+                    answers,
                     submittedAt: now,
                 };
 
