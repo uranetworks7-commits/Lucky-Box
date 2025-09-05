@@ -3,16 +3,16 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { onValue, ref, push, set } from 'firebase/database';
+import { onValue, ref, push, set, get, query, orderByChild, equalTo } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import type { LuckyEvent } from '@/types';
+import type { LuckyEvent, UserData } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TerminalAnimation } from '@/components/lucky-draw/TerminalAnimation';
 import { Countdown } from '@/components/lucky-draw/Countdown';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift, Box, Sparkles } from 'lucide-react';
+import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift, Box, Sparkles, Star } from 'lucide-react';
 import Link from 'next/link';
 
 type EventStatus = 'loading' | 'upcoming' | 'live' | 'ended' | 'results' | 'not_found';
@@ -85,10 +85,42 @@ export default function EventPage() {
     const now = Date.now();
     if (now > event.endTime) {
         setRegistrationSuccess(false);
-    } else {
-        setRegistrationSuccess(true);
+        setRegistrationStatus('animating');
+        return;
     }
-    setRegistrationStatus('animating'); // Start animation immediately
+
+    // Check for required XP
+    if (event.requiredXp && event.requiredXp > 0) {
+        setRegistrationStatus('registering');
+        try {
+            const userQuery = query(ref(db, 'users'), orderByChild('username'), equalTo(username));
+            const userSnapshot = await get(userQuery);
+            let userXp = 0;
+            if(userSnapshot.exists()){
+                const userData = Object.values(userSnapshot.val())[0] as UserData;
+                userXp = userData.xp || 0;
+            }
+
+            if (userXp < event.requiredXp) {
+                toast({
+                    title: 'Registration Failed',
+                    description: `You need at least ${event.requiredXp} XP to register. You have ${userXp} XP.`,
+                    variant: 'destructive',
+                });
+                setRegistrationStatus('unregistered');
+                return;
+            }
+        } catch (error) {
+            console.error("Error checking user XP:", error);
+            toast({ title: 'Error', description: 'Could not verify your XP. Please try again.', variant: 'destructive' });
+            setRegistrationStatus('unregistered');
+            return;
+        }
+    }
+
+
+    setRegistrationSuccess(true);
+    setRegistrationStatus('animating'); // Start animation
   };
 
   const handleAnimationComplete = async () => {
@@ -161,9 +193,18 @@ export default function EventPage() {
           <Sparkles className="h-16 w-16 text-red-400 mx-auto animate-pulse" />
           <h3 className="text-3xl font-bold text-white">The Event is LIVE!</h3>
           <p className="text-red-200/90">Your chance to win is now. Don't miss out!</p>
+          {event.requiredXp ? (
+            <div className="flex justify-center items-center gap-2 text-sm text-yellow-300 bg-black/30 py-1 px-3 rounded-full">
+                <Star className="h-4 w-4" />
+                <span>Requires {event.requiredXp} XP</span>
+            </div>
+           ) : (
+            <div className="flex justify-center items-center gap-2 text-sm text-green-300 bg-black/30 py-1 px-3 rounded-full">
+                <span>Free to Join</span>
+            </div>
+           )}
           <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 text-lg font-bold animate-pulse" disabled={registrationStatus !== 'unregistered'}>
-              <Box className="mr-2 h-6 w-6"/>
-              Registered
+              {registrationStatus === 'registering' ? <><Loader2 className="mr-2 h-6 w-6 animate-spin"/> Checking...</> : <><Box className="mr-2 h-6 w-6"/> Register</>}
           </Button>
         </div>
       );

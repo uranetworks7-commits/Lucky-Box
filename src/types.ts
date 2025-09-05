@@ -39,6 +39,7 @@ export interface QuizOrPoll {
 }
 
 export interface UserData {
+    user_id: string;
     username: string;
     xp: number;
     // other user data can go here
