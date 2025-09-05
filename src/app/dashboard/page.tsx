@@ -166,22 +166,22 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')" }}>
       <div className="min-h-screen bg-black/60 p-4 sm:p-6 md:p-8">
         <header className="flex justify-between items-center mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-              <Box className="h-7 w-7 text-accent" /> URA Box Pro
+          <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+              <Box className="h-6 w-6 text-accent" /> URA Box Pro
           </h1>
-          <div className="flex items-center gap-2 sm:gap-4">
-              <div className="flex items-center gap-2 text-white bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                  <Zap className="h-5 w-5 text-cyan-400"/>
-                  <span className="font-bold text-lg">0</span>
+          <div className="flex items-center gap-1 sm:gap-2">
+              <div className="flex items-center gap-2 text-white bg-black/30 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                  <Zap className="h-4 w-4 text-cyan-400"/>
+                  <span className="font-bold text-base">0</span>
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                <User className="h-5 w-5" /> {username}
-                 <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
-                    <LogOut className="h-5 w-5" />
+              <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-1.5">
+                <User className="h-4 w-4" /> {username}
+                 <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white h-8 w-8">
+                    <LogOut className="h-4 w-4" />
                  </Button>
               </h2>
-               <Button variant="ghost" size="icon" onClick={() => router.push('/settings')} className="text-white hover:bg-white/10 hover:text-white">
-                  <Settings className="h-5 w-5" />
+               <Button variant="ghost" size="icon" onClick={() => router.push('/settings')} className="text-white hover:bg-white/10 hover:text-white h-8 w-8">
+                  <Settings className="h-4 w-4" />
               </Button>
           </div>
         </header>
@@ -311,3 +311,4 @@ export default function DashboardPage() {
     
 
     
+
