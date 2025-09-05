@@ -29,8 +29,7 @@ export interface QuizOrPoll {
     question: string;
     imageUrl?: string;
     options?: string[]; // For MCQ and Poll
-    // For simplicity, we won't handle correct answers for now, just participation XP
-    // correctAnswer?: number; 
+    correctAnswer?: number; // For MCQ
     submissions?: Record<string, { // userPushId: submission
         username: string;
         answer: string | number; // string for descriptive, number for mcq/poll index
@@ -44,4 +43,3 @@ export interface UserData {
     xp: number;
     // other user data can go here
 }
-

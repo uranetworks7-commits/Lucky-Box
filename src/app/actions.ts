@@ -75,6 +75,11 @@ export async function deleteEvent(eventId: string): Promise<void> {
     await remove(eventRef);
 }
 
+export async function deleteQuiz(quizId: string): Promise<void> {
+    const quizRef = ref(db, `quizzes/${quizId}`);
+    await remove(quizRef);
+}
+
 export async function submitQuizAnswer(
     quizId: string,
     username: string,

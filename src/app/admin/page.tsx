@@ -16,13 +16,16 @@ import { DeleteEventDialog } from '@/components/lucky-draw/DeleteEventDialog';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { determineWinners } from '../actions';
+import { DeleteQuizDialog } from '@/components/lucky-draw/DeleteQuizDialog';
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState<LuckyEvent[]>([]);
   const [quizzes, setQuizzes] = useState<QuizOrPoll[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEventDeleteDialogOpen, setIsEventDeleteDialogOpen] = useState(false);
+  const [isQuizDeleteDialogOpen, setIsQuizDeleteDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<LuckyEvent | null>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<QuizOrPoll | null>(null);
 
   useEffect(() => {
     const eventsRef = ref(db, 'events');
@@ -68,9 +71,14 @@ export default function AdminDashboard() {
     }
   }, []);
   
-  const handleDeleteClick = (event: LuckyEvent) => {
+  const handleEventDeleteClick = (event: LuckyEvent) => {
     setSelectedEvent(event);
-    setIsDeleteDialogOpen(true);
+    setIsEventDeleteDialogOpen(true);
+  }
+
+  const handleQuizDeleteClick = (quiz: QuizOrPoll) => {
+    setSelectedQuiz(quiz);
+    setIsQuizDeleteDialogOpen(true);
   }
   
   const getActivityStatus = (item: {startTime: number, endTime: number}) => {
@@ -149,7 +157,7 @@ export default function AdminDashboard() {
                                 <Pencil className="mr-2 h-3 w-3" /> Edit
                               </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteClick(event)} className="text-destructive flex items-center text-xs">
+                            <DropdownMenuItem onClick={() => handleEventDeleteClick(event)} className="text-destructive flex items-center text-xs">
                                <Trash2 className="mr-2 h-3 w-3" /> Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -195,9 +203,24 @@ export default function AdminDashboard() {
                     <TableCell className="px-2 py-1 text-xs">{quiz.xp}</TableCell>
                     <TableCell className="px-2 py-1 text-xs">{getActivityStatus(quiz)}</TableCell>
                     <TableCell className="text-right px-2 py-1 text-xs">
-                       <Button variant="outline" size="sm" disabled className="h-6 px-2 text-xs">
-                            <Pencil className="mr-1 h-3 w-3" /> Edit
-                       </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                              <MoreHorizontal className="h-3 w-3" />
+                              <span className="sr-only">Actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/edit-quiz/${quiz.id}`} className="flex items-center text-xs">
+                                <Pencil className="mr-2 h-3 w-3" /> Edit
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleQuizDeleteClick(quiz)} className="text-destructive flex items-center text-xs">
+                               <Trash2 className="mr-2 h-3 w-3" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -213,9 +236,16 @@ export default function AdminDashboard() {
 
        {selectedEvent && (
         <DeleteEventDialog
-          open={isDeleteDialogOpen}
-          onOpenChange={setIsDeleteDialogOpen}
+          open={isEventDeleteDialogOpen}
+          onOpenChange={setIsEventDeleteDialogOpen}
           event={selectedEvent}
+        />
+      )}
+       {selectedQuiz && (
+        <DeleteQuizDialog
+          open={isQuizDeleteDialogOpen}
+          onOpenChange={setIsQuizDeleteDialogOpen}
+          quiz={selectedQuiz}
         />
       )}
     </div>
