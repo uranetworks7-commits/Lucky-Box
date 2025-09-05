@@ -72,7 +72,7 @@ export const createUserIfNotExists = async (username: string): Promise<string> =
         const newUser: UserData = {
             user_id: newUserRef.key!,
             username: username,
-            xp: 0,
+            xp: 500, // Set default XP to 500 for new users
         };
         await set(newUserRef, newUser);
         return newUserRef.key!;
