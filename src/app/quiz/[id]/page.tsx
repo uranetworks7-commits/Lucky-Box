@@ -13,8 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { submitQuizAnswer } from '@/app/actions';
-import { ArrowLeft, CheckCircle, Clock, Loader2, Send } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Loader2, Send, XCircle } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 type PageStatus = 'loading' | 'live' | 'ended' | 'upcoming' | 'submitted' | 'not_found';
 
@@ -28,6 +29,7 @@ export default function QuizPage() {
   const [activity, setActivity] = useState<QuizOrPoll | null>(null);
   const [status, setStatus] = useState<PageStatus>('loading');
   const [answer, setAnswer] = useState<string | number>('');
+  const [userSubmission, setUserSubmission] = useState<{answer: string | number} | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -49,10 +51,11 @@ export default function QuizPage() {
         setActivity(data);
 
         const now = Date.now();
-        const userSubmission = Object.values(data.submissions || {}).find(sub => sub.username === username);
+        const submission = Object.values(data.submissions || {}).find(sub => sub.username === username);
 
-        if (userSubmission) {
+        if (submission) {
           setStatus('submitted');
+          setUserSubmission(submission);
         } else if (now < data.startTime) {
           setStatus('upcoming');
         } else if (now > data.endTime) {
@@ -77,7 +80,7 @@ export default function QuizPage() {
     
     if (result.success) {
       toast({ title: 'Success!', description: result.message });
-      setStatus('submitted');
+      // Status will be updated by the onValue listener
     } else {
       toast({ title: 'Error', description: result.message, variant: 'destructive' });
     }
@@ -99,7 +102,37 @@ export default function QuizPage() {
         return <div className="text-center space-y-2"><Clock className="mx-auto h-12 w-12 text-muted-foreground"/><p className="text-lg">This activity has ended.</p></div>
     }
      if (status === 'submitted') {
-        return <div className="text-center space-y-2"><CheckCircle className="mx-auto h-12 w-12 text-green-500"/><p className="text-lg">You have already participated in this activity.</p></div>
+        if (activity.questionType === 'mcq' && activity.correctAnswer !== undefined) {
+             const isCorrect = userSubmission?.answer === activity.correctAnswer;
+             return (
+                 <div className="space-y-4">
+                     <p className="text-lg font-medium">{activity.question}</p>
+                     <div className="space-y-2">
+                         {activity.options?.map((option, index) => {
+                             const isUserAnswer = userSubmission?.answer === index;
+                             const isCorrectAnswer = activity.correctAnswer === index;
+                             return (
+                                <div key={index} className={cn(
+                                    "flex items-center space-x-3 rounded-md border p-3",
+                                    isCorrectAnswer && "border-green-500 bg-green-500/10",
+                                    isUserAnswer && !isCorrectAnswer && "border-destructive bg-destructive/10"
+                                )}>
+                                    {isCorrectAnswer ? <CheckCircle className="text-green-500 h-5 w-5" /> : (isUserAnswer ? <XCircle className="text-destructive h-5 w-5"/> : <div className="h-5 w-5"/>)}
+                                    <Label htmlFor={`option-${index}`} className="flex-1">{option}</Label>
+                                </div>
+                            )
+                         })}
+                     </div>
+                     <div className={cn(
+                         "text-center font-bold p-3 rounded-md",
+                         isCorrect ? "bg-green-500/20 text-green-700" : "bg-destructive/20 text-destructive"
+                     )}>
+                         {isCorrect ? `Correct! You earned ${activity.xp} XP.` : "Sorry, that was not the correct answer."}
+                     </div>
+                 </div>
+             )
+        }
+        return <div className="text-center space-y-2"><CheckCircle className="mx-auto h-12 w-12 text-green-500"/><p className="text-lg">Thank you for your submission!</p></div>
     }
 
     // Live status
@@ -156,3 +189,5 @@ export default function QuizPage() {
     </main>
   );
 }
+
+    

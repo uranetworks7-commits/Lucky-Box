@@ -15,6 +15,7 @@ import type { QuizOrPoll, QuestionType } from '@/types';
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, MessageSquare, CheckSquare, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export default function CreateQuizPage() {
   const [title, setTitle] = useState('');
@@ -24,7 +25,8 @@ export default function CreateQuizPage() {
   const [questionType, setQuestionType] = useState<QuestionType>();
   const [question, setQuestion] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [options, setOptions] = useState<string[]>(['']);
+  const [options, setOptions] = useState<string[]>(['', '']);
+  const [correctAnswer, setCorrectAnswer] = useState<number | undefined>();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -42,9 +44,14 @@ export default function CreateQuizPage() {
   };
 
   const removeOptionField = (index: number) => {
-    if (options.length > 1) {
+    if (options.length > 2) {
         const newOptions = options.filter((_, i) => i !== index);
         setOptions(newOptions);
+        if(correctAnswer === index) {
+            setCorrectAnswer(undefined);
+        } else if (correctAnswer && correctAnswer > index) {
+            setCorrectAnswer(correctAnswer - 1);
+        }
     }
   };
 
@@ -68,6 +75,11 @@ export default function CreateQuizPage() {
          toast({ title: 'Error', description: 'MCQs and Polls must have at least two options.', variant: 'destructive' });
          return;
     }
+    
+    if (questionType === 'mcq' && correctAnswer === undefined) {
+         toast({ title: 'Error', description: 'Please select a correct answer for the MCQ.', variant: 'destructive' });
+         return;
+    }
 
     if (questionType === 'image' && !imageUrl) {
          toast({ title: 'Error', description: 'Image-based questions require an image URL.', variant: 'destructive' });
@@ -85,6 +97,7 @@ export default function CreateQuizPage() {
       question,
       ...(imageUrl && { imageUrl }),
       ...(finalOptions && { options: finalOptions }),
+      ...(questionType === 'mcq' && { correctAnswer }),
     };
 
     try {
@@ -176,8 +189,12 @@ export default function CreateQuizPage() {
                     </div>
                  )}
                  {(questionType === 'mcq' || questionType === 'poll') && (
+                     <RadioGroup onValueChange={(v) => setCorrectAnswer(Number(v))} value={correctAnswer?.toString()}>
                      <div className="space-y-4">
-                        <Label>Options</Label>
+                        <div className="flex justify-between items-center">
+                          <Label>Options</Label>
+                          {questionType === 'mcq' && <Label className="text-xs text-muted-foreground">Select Correct Answer</Label>}
+                        </div>
                         <div className="space-y-2">
                         {options.map((option, index) => (
                             <div key={index} className="flex items-center gap-2">
@@ -186,7 +203,10 @@ export default function CreateQuizPage() {
                                 onChange={(e) => handleOptionChange(index, e.target.value)}
                                 placeholder={`Option ${index + 1}`}
                             />
-                            {options.length > 1 && (
+                             {questionType === 'mcq' && (
+                                <RadioGroupItem value={index.toString()} id={`r-${index}`} />
+                            )}
+                            {options.length > 2 && (
                                 <Button type="button" variant="outline" size="icon" onClick={() => removeOptionField(index)}>
                                 <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -198,6 +218,7 @@ export default function CreateQuizPage() {
                             <PlusCircle className="mr-2 h-4 w-4" /> Add Option
                         </Button>
                     </div>
+                    </RadioGroup>
                  )}
             </div>
           )}
@@ -210,3 +231,5 @@ export default function CreateQuizPage() {
     </Card>
   );
 }
+
+    

@@ -19,6 +19,12 @@ export interface LuckyEvent {
 
 export type QuestionType = 'poll' | 'mcq' | 'descriptive' | 'image';
 
+export interface Submission {
+  username: string;
+  answer: string | number; // string for descriptive, number for mcq/poll index
+  submittedAt: number;
+}
+
 export interface QuizOrPoll {
     id: string;
     title: string;
@@ -29,12 +35,8 @@ export interface QuizOrPoll {
     question: string;
     imageUrl?: string;
     options?: string[]; // For MCQ and Poll
-    correctAnswer?: number; // For MCQ
-    submissions?: Record<string, { // userPushId: submission
-        username: string;
-        answer: string | number; // string for descriptive, number for mcq/poll index
-        submittedAt: number;
-    }>;
+    correctAnswer?: number | null; // For MCQ - index of correct answer
+    submissions?: Record<string, Submission>; // userPushId: submission
 }
 
 export interface UserData {
@@ -43,3 +45,5 @@ export interface UserData {
     xp: number;
     // other user data can go here
 }
+
+    

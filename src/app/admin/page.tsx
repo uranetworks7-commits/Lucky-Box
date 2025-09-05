@@ -9,7 +9,7 @@ import type { LuckyEvent, QuizOrPoll } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Eye, Pencil, Trash2, MoreHorizontal, HelpCircle } from 'lucide-react';
+import { PlusCircle, Eye, Pencil, Trash2, MoreHorizontal, HelpCircle, BarChart2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { DeleteEventDialog } from '@/components/lucky-draw/DeleteEventDialog';
@@ -211,6 +211,11 @@ export default function AdminDashboard() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                             <DropdownMenuItem asChild>
+                              <Link href={`/admin/quiz-results/${quiz.id}`} className="flex items-center text-xs">
+                                <BarChart2 className="mr-2 h-3 w-3" /> View Results
+                              </Link>
+                            </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link href={`/admin/edit-quiz/${quiz.id}`} className="flex items-center text-xs">
                                 <Pencil className="mr-2 h-3 w-3" /> Edit
@@ -251,3 +256,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+    
