@@ -257,8 +257,8 @@ export default function DashboardPage() {
                 </h2>
                 <Button asChild className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-bold shadow-lg hover:shadow-xl transition-shadow">
                     <Link href="/activities">
-                        <Zap className="mr-2 h-5 w-5"/>
-                        Get XP ⚡
+                        <Star className="mr-2 h-5 w-5"/>
+                        Get XP
                     </Link>
                 </Button>
             </div>
