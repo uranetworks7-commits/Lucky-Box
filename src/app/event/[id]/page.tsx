@@ -3,9 +3,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { onValue, ref, push, set, get, query, orderByChild, equalTo } from 'firebase/database';
+import { onValue, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import type { LuckyEvent, UserData } from '@/types';
+import type { LuckyEvent } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TerminalAnimation } from '@/components/lucky-draw/TerminalAnimation';
@@ -14,9 +14,10 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift, Box, Sparkles, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { registerForEvent } from '@/app/actions';
 
 type EventStatus = 'loading' | 'upcoming' | 'live' | 'ended' | 'results' | 'not_found';
-type RegistrationStatus = 'unregistered' | 'registering' | 'registered' | 'animating';
+type RegistrationStatus = 'unregistered' | 'registering' | 'animating' | 'registered';
 
 export default function EventPage() {
   const params = useParams();
@@ -29,7 +30,8 @@ export default function EventPage() {
   const [eventStatus, setEventStatus] = useState<EventStatus>('loading');
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus>('unregistered');
   const [showResultsLink, setShowResultsLink] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(true);
+  const [terminalSuccess, setTerminalSuccess] = useState(true);
+  const [terminalMessage, setTerminalMessage] = useState('');
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -82,65 +84,25 @@ export default function EventPage() {
   
   const handleRegister = async () => {
     if (!username || !event || registrationStatus !== 'unregistered') return;
-    const now = Date.now();
-    if (now > event.endTime) {
-        setRegistrationSuccess(false);
-        setRegistrationStatus('animating');
-        return;
-    }
-
-    // Check for required XP
-    if (event.requiredXp && event.requiredXp > 0) {
-        setRegistrationStatus('registering');
-        try {
-            const userRef = ref(db, `users/${username}`);
-            const userSnapshot = await get(userRef);
-            let userXp = 0;
-            if(userSnapshot.exists()){
-                const userData = userSnapshot.val() as UserData;
-                userXp = userData.xp || 0;
-            }
-
-            if (userXp < event.requiredXp) {
-                toast({
-                    title: 'Registration Failed',
-                    description: `You need at least ${event.requiredXp} XP to register. You have ${userXp} XP.`,
-                    variant: 'destructive',
-                });
-                setRegistrationStatus('unregistered');
-                return;
-            }
-        } catch (error) {
-            console.error("Error checking user XP:", error);
-            toast({ title: 'Error', description: 'Could not verify your XP. Please try again.', variant: 'destructive' });
-            setRegistrationStatus('unregistered');
-            return;
-        }
-    }
-
-
-    setRegistrationSuccess(true);
+    
     setRegistrationStatus('animating'); // Start animation
+
+    const result = await registerForEvent(event.id, username);
+
+    setTerminalSuccess(result.success);
+    setTerminalMessage(result.message);
   };
 
-  const handleAnimationComplete = async () => {
-      if (!username || !event) return;
-      
-      if (!registrationSuccess) {
-          toast({ title: 'Registration Failed', description: 'The registration period for this event has ended.', variant: 'destructive' });
-          setRegistrationStatus('unregistered');
-          return;
-      }
+  const handleAnimationComplete = () => {
+      toast({
+          title: terminalSuccess ? 'Success!' : 'Registration Failed',
+          description: terminalMessage,
+          variant: terminalSuccess ? 'default' : 'destructive',
+      });
 
-      try {
-          const usersRef = ref(db, `events/${event.id}/registeredUsers`);
-          const newUserRef = push(usersRef);
-          await set(newUserRef, username);
-          toast({ title: 'Success!', description: 'You have been successfully registered for the event.' });
+      if (terminalSuccess) {
           setRegistrationStatus('registered');
-      } catch (error) {
-          console.error(error);
-          toast({ title: 'Error', description: 'Registration failed. Please try again.', variant: 'destructive' });
+      } else {
           setRegistrationStatus('unregistered');
       }
   }
@@ -159,7 +121,7 @@ export default function EventPage() {
     }
 
     if(registrationStatus === 'animating'){
-        return <TerminalAnimation onComplete={handleAnimationComplete} success={registrationSuccess} />;
+        return <TerminalAnimation onComplete={handleAnimationComplete} success={terminalSuccess} message={terminalMessage} />;
     }
     
     const resultsContent = (
@@ -196,7 +158,7 @@ export default function EventPage() {
           {event.requiredXp && event.requiredXp > 0 ? (
             <div className="flex justify-center items-center gap-2 text-sm text-blue-300 bg-black/30 py-1 px-3 rounded-full">
                 <Zap className="h-4 w-4" />
-                <span>Requires {event.requiredXp} XP</span>
+                <span>Requires {event.requiredXp} XP to join</span>
             </div>
            ) : (
             <div className="flex justify-center items-center gap-2 text-sm text-green-300 bg-black/30 py-1 px-3 rounded-full">
@@ -204,7 +166,7 @@ export default function EventPage() {
             </div>
            )}
           <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 text-lg font-bold animate-pulse" disabled={registrationStatus !== 'unregistered'}>
-              {registrationStatus === 'registering' ? <><Loader2 className="mr-2 h-6 w-6 animate-spin"/> Checking...</> : <><Box className="mr-2 h-6 w-6"/> Register</>}
+            <Box className="mr-2 h-6 w-6"/> Register
           </Button>
         </div>
       );

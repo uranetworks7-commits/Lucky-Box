@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,7 +15,7 @@ const successLines = [
   'Registration successful!',
 ];
 
-const failureLines = [
+const generateFailureLines = (message: string) => [
     'Initializing registration sequence...',
     'Connecting to event server... [OK]',
     'Authenticating user credentials...',
@@ -22,14 +23,14 @@ const failureLines = [
     'Submitting registration ticket...',
     'Awaiting confirmation...',
     'Server response: 400 Bad Request',
-    'Registration Failed: Deadline passed.',
+    `Registration Failed: ${message}`,
 ];
 
 const TOTAL_DURATION = 4000; // 4 seconds
 
-export function TerminalAnimation({ onComplete, success = true }: { onComplete: () => void, success?: boolean }) {
+export function TerminalAnimation({ onComplete, success = true, message = '' }: { onComplete: () => void, success?: boolean, message?: string }) {
   const [visibleLines, setVisibleLines] = useState<string[]>([]);
-  const lines = success ? successLines : failureLines;
+  const lines = success ? successLines : generateFailureLines(message);
   
   useEffect(() => {
     let i = 0;
@@ -47,7 +48,7 @@ export function TerminalAnimation({ onComplete, success = true }: { onComplete: 
     return () => clearInterval(interval);
   }, [onComplete, lines]);
 
-  const isErrorLine = (line: string) => !success && line && (line.includes('Failed') || line.includes('400'));
+  const isErrorLine = (line: string) => !success && (line.includes('Failed') || line.includes('400'));
 
   return (
     <div className={cn("bg-gray-900 font-mono text-sm p-4 rounded-lg h-64 overflow-y-auto", success ? "text-green-400" : "text-red-400")}>

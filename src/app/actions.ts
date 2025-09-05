@@ -7,6 +7,56 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent, QuizOrPoll, UserData } from '@/types';
 import { createUserIfNotExists } from '@/lib/firebase';
 
+export async function registerForEvent(eventId: string, username: string): Promise<{ success: boolean; message: string }> {
+  const eventRef = ref(db, `events/${eventId}`);
+  const eventSnapshot = await get(eventRef);
+
+  if (!eventSnapshot.exists()) {
+    return { success: false, message: 'Event not found.' };
+  }
+
+  const eventData: LuckyEvent = { id: eventId, ...eventSnapshot.val() };
+  const now = Date.now();
+
+  if (now > eventData.endTime) {
+    return { success: false, message: 'Registration has ended.' };
+  }
+
+  // Find user by username to get their ID and data
+  const usersRef = ref(db, 'users');
+  const userQuery = query(usersRef, orderByChild('username'), equalTo(username));
+  const userSnapshot = await get(userQuery);
+
+  if (!userSnapshot.exists()) {
+    return { success: false, message: 'User not found.' };
+  }
+
+  const [userId, userData] = Object.entries(userSnapshot.val())[0] as [string, UserData];
+
+  // Check if user is already registered
+  if (eventData.registeredUsers && Object.values(eventData.registeredUsers).includes(username)) {
+      return { success: false, message: 'You are already registered for this event.' };
+  }
+  
+  // Check for required XP
+  if (eventData.requiredXp && eventData.requiredXp > 0) {
+    const userXp = userData.xp || 0;
+    if (userXp < eventData.requiredXp) {
+      return {
+        success: false,
+        message: `You need at least ${eventData.requiredXp} XP to register. You have ${userXp} XP.`,
+      };
+    }
+  }
+
+  // Register user for the event without deducting XP
+  const newRegisteredUserRef = push(ref(db, `events/${eventId}/registeredUsers`));
+  await set(newRegisteredUserRef, username);
+
+  return { success: true, message: 'Successfully registered for the event!' };
+}
+
+
 export async function determineWinners(eventId: string): Promise<LuckyEvent> {
   const eventRef = ref(db, `events/${eventId}`);
   const eventSnapshot = await get(eventRef);
