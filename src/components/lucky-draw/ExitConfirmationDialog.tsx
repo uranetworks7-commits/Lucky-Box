@@ -35,3 +35,5 @@ export function ExitConfirmationDialog({ open, onOpenChange, onConfirm, onCancel
     </AlertDialog>
   );
 }
+
+    
