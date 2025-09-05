@@ -169,8 +169,8 @@ export default function DashboardPage() {
           </h1>
           <div className="flex items-center gap-1 sm:gap-2">
               <div className="flex items-center gap-2 text-white bg-black/30 backdrop-blur-sm px-2.5 py-1 rounded-full">
-                  <Zap className="h-4 w-4 text-cyan-400"/>
-                  <span className="font-bold text-base">0</span>
+                  <Star className="h-4 w-4 text-yellow-400"/>
+                  <span className="font-bold text-base">500</span>
               </div>
               <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-1.5">
                 <User className="h-4 w-4" /> {username}

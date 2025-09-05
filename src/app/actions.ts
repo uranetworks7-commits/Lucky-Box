@@ -88,44 +88,42 @@ export async function submitQuizAnswer(
     const quizRef = ref(db, `quizzes/${quizId}`);
     
     try {
+        // Get or create the user's unique ID first.
+        const userPushId = await createUserIfNotExists(username);
+
         const result = await runTransaction(quizRef, (quiz: QuizOrPoll | null) => {
             if (quiz) {
                 const now = Date.now();
                 if (now < quiz.startTime || now > quiz.endTime) {
-                    // abort transaction
-                    return; 
+                    return; // Abort transaction if activity is not live
                 }
 
                 if (!quiz.submissions) {
                     quiz.submissions = {};
                 }
                 
-                // Check if user already submitted by username
-                const existingSubmission = Object.values(quiz.submissions).find(
-                    (sub) => sub.username === username
-                );
-
-                if (existingSubmission) {
-                    // Abort transaction
-                    return;
+                // Check if user has already submitted using their unique ID
+                if (quiz.submissions[userPushId]) {
+                    return; // Abort transaction
                 }
-
-                const userPushId = createUserIfNotExists(username); // This is a placeholder for a real user ID system.
                 
+                // Record the new submission with the unique ID
                 quiz.submissions[userPushId] = {
                     username,
                     answers,
                     submittedAt: now,
                 };
 
-                // Award XP
-                const userRef = ref(db, `users/${username}`);
-                 runTransaction(userRef, (user) => {
+                // Award XP to the user
+                const userRef = ref(db, `users/${userPushId}`);
+                runTransaction(userRef, (user) => {
                     if (user) {
                         user.xp = (user.xp || 0) + quiz.xp;
-                    } else {
-                        // This case is handled by createUserIfNotExists, but as a fallback:
-                        return { username, xp: quiz.xp };
+                    }
+                    // The user is created by createUserIfNotExists, so 'else' case is not strictly necessary here
+                    // but good for safety.
+                    else {
+                        return { username: username, xp: quiz.xp, user_id: userPushId };
                     }
                     return user;
                 });
@@ -134,11 +132,16 @@ export async function submitQuizAnswer(
         });
 
         if (result.committed) {
-             if (!result.snapshot.val().submissions || !Object.values(result.snapshot.val().submissions).some((s: any) => s.username === username)) {
-                 return { success: false, message: 'You have already submitted an answer.' };
+             const finalSubmissions = result.snapshot.val()?.submissions;
+             // We check for committed status AND if our submission actually exists.
+             // If the transaction was aborted, committed is false.
+             if (finalSubmissions && finalSubmissions[userPushId]) {
+                return { success: true, message: `Congratulations! You've earned ${result.snapshot.val().xp} XP.` };
+             } else {
+                 return { success: false, message: 'You have already submitted an answer for this activity.' };
              }
-            return { success: true, message: `Congratulations! You've earned ${result.snapshot.val().xp} XP.` };
         } else {
+            // This path is taken if the transaction is aborted (e.g., activity ended, or user already submitted)
             return { success: false, message: 'Activity has ended or you have already submitted.' };
         }
 
