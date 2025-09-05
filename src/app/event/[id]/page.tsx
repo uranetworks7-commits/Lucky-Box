@@ -12,7 +12,7 @@ import { TerminalAnimation } from '@/components/lucky-draw/TerminalAnimation';
 import { Countdown } from '@/components/lucky-draw/Countdown';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift, Box, Sparkles, Star } from 'lucide-react';
+import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift, Box, Sparkles, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 type EventStatus = 'loading' | 'upcoming' | 'live' | 'ended' | 'results' | 'not_found';
@@ -194,8 +194,8 @@ export default function EventPage() {
           <h3 className="text-3xl font-bold text-white">The Event is LIVE!</h3>
           <p className="text-red-200/90">Your chance to win is now. Don't miss out!</p>
           {event.requiredXp && event.requiredXp > 0 ? (
-            <div className="flex justify-center items-center gap-2 text-sm text-yellow-300 bg-black/30 py-1 px-3 rounded-full">
-                <Star className="h-4 w-4" />
+            <div className="flex justify-center items-center gap-2 text-sm text-blue-300 bg-black/30 py-1 px-3 rounded-full">
+                <Zap className="h-4 w-4" />
                 <span>Requires {event.requiredXp} XP</span>
             </div>
            ) : (

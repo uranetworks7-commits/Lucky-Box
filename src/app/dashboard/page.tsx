@@ -9,7 +9,7 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Zap, Star } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Zap } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -169,7 +169,7 @@ export default function DashboardPage() {
           </h1>
           <div className="flex items-center gap-1 sm:gap-2">
               <div className="flex items-center gap-2 text-white bg-black/30 backdrop-blur-sm px-2.5 py-1 rounded-full">
-                  <Star className="h-4 w-4 text-yellow-400"/>
+                  <Zap className="h-4 w-4 text-blue-400"/>
                   <span className="font-bold text-base">500</span>
               </div>
               <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-1.5">
@@ -218,7 +218,7 @@ export default function DashboardPage() {
                             )}
                              <div className="!mt-4">
                                 {event.requiredXp && event.requiredXp > 0 ? (
-                                    <Badge variant="outline" className="text-yellow-300 border-yellow-300/50"><Star className="h-3 w-3 mr-1.5"/>{event.requiredXp} XP Required</Badge>
+                                    <Badge variant="outline" className="text-blue-300 border-blue-300/50"><Zap className="h-3 w-3 mr-1.5"/>{event.requiredXp} XP Required</Badge>
                                 ) : (
                                     <Badge variant="outline" className="text-green-300 border-green-300/50">Free to Join</Badge>
                                 )}
@@ -257,7 +257,7 @@ export default function DashboardPage() {
                 </h2>
                 <Button asChild className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-bold shadow-lg hover:shadow-xl transition-shadow">
                     <Link href="/activities">
-                        <Star className="mr-2 h-5 w-5"/>
+                        <Zap className="mr-2 h-5 w-5"/>
                         Get XP
                     </Link>
                 </Button>
@@ -271,8 +271,8 @@ export default function DashboardPage() {
                         <div className="flex flex-col">
                             <span>{event.name}</span>
                             {event.requiredXp && event.requiredXp > 0 && (
-                                <span className="text-xs font-normal flex items-center gap-1 text-yellow-400 mt-1">
-                                    <Star className="h-3 w-3"/>
+                                <span className="text-xs font-normal flex items-center gap-1 text-blue-400 mt-1">
+                                    <Zap className="h-3 w-3"/>
                                     {event.requiredXp} XP Required
                                 </span>
                             )}

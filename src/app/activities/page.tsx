@@ -8,7 +8,7 @@ import { db } from '@/lib/firebase';
 import type { QuizOrPoll } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Star, Clock, Check, Calendar } from 'lucide-react';
+import { ArrowLeft, Zap, Clock, Check, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
@@ -56,7 +56,7 @@ export default function ActivitiesPage() {
     <div className="min-h-screen bg-muted/40 p-4 sm:p-6 md:p-8">
       <header className="flex items-center justify-between mb-6 max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold flex items-center gap-3">
-          <Star className="h-8 w-8 text-yellow-400" />
+          <Zap className="h-8 w-8 text-blue-500" />
           Earn XP
         </h1>
         <Button variant="outline" onClick={handleBack}>
@@ -79,8 +79,8 @@ export default function ActivitiesPage() {
                   </CardTitle>
                   <CardDescription className="flex items-center gap-2 pt-2">
                     <Badge variant="secondary" className="capitalize">{activity.questionType}</Badge>
-                    <div className="flex items-center gap-1 text-yellow-500 font-bold">
-                        <Star className="h-4 w-4"/>
+                    <div className="flex items-center gap-1 text-blue-500 font-bold">
+                        <Zap className="h-4 w-4"/>
                         <span>{activity.xp} XP</span>
                     </div>
                   </CardDescription>

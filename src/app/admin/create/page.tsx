@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import type { LuckyEvent } from '@/types';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, PlusCircle, Sparkles, Trash2, Bell, Star } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Sparkles, Trash2, Bell, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CreateEventPage() {
@@ -161,7 +161,7 @@ export default function CreateEventPage() {
            <div className="space-y-2">
                 <Label htmlFor="required-xp">Required XP (Optional)</Label>
                 <div className="relative">
-                    <Star className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                    <Zap className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
                     <Input 
                         id="required-xp" 
                         type="number" 
