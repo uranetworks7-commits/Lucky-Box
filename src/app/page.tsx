@@ -8,14 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { createUserIfNotExists } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 
-const validUsernames = new Set([
-  'utkarshx', 'rehan@24', 'ayush@5926', 'Saumy', 'saumy', 'ayush@558', 'rehan ali', 'xrehan', 's', 'arpit', 'o', 'gg', 'kk', 'sajid', 'VLC179', 'b', 'k', 'h', 'm', 'ayush@559', 'romitverma', 'romit verma', 'cv', 'ff', 'test12345678@c.us', 'ij', 'jj', 'CSK', 'bb', 'suraj@23', 'arman@45', 'oo', 'vijomc', 'vv', 'main', 'yyt', 'uu'
-]);
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -26,18 +25,32 @@ export default function LoginPage() {
     }
   }, [router]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedUsername = username.trim();
-    if (trimmedUsername && validUsernames.has(trimmedUsername)) {
-      localStorage.setItem('username', trimmedUsername);
-      router.push('/dashboard');
-    } else {
-      toast({
-        title: "Login Failed",
-        description: "The username you entered is incorrect.",
-        variant: "destructive",
-      });
+    if (!trimmedUsername) {
+        toast({
+            title: "Login Failed",
+            description: "Username cannot be empty.",
+            variant: "destructive",
+        });
+        return;
+    }
+    
+    setIsLoading(true);
+
+    try {
+        await createUserIfNotExists(trimmedUsername);
+        localStorage.setItem('username', trimmedUsername);
+        router.push('/dashboard');
+    } catch (error) {
+        console.error("Login Error: ", error);
+        toast({
+            title: "Login Failed",
+            description: "An error occurred during login. Please try again.",
+            variant: "destructive",
+        });
+        setIsLoading(false);
     }
   };
 
@@ -59,11 +72,14 @@ export default function LoginPage() {
                             required 
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                            disabled={isLoading}
                         />
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Button type="submit" className="w-full">Login</Button>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? <Loader2 className="animate-spin"/> : 'Login / Register'}
+                    </Button>
                 </CardFooter>
             </form>
         </Card>
