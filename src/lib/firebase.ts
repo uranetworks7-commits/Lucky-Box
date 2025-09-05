@@ -1,7 +1,8 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getDatabase, ref, set } from "firebase/database";
+import { getDatabase, ref, set, push, query, orderByChild, equalTo, get } from "firebase/database";
 import { getMessaging, getToken } from "firebase/messaging";
+import type { UserData } from "@/types";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA3BcsYHFGcwgsNp8-p0U5HXZeAIMiYR0Q",
@@ -55,3 +56,26 @@ export const getMessagingToken = async () => {
 
     return currentToken;
 };
+
+
+export const createUserIfNotExists = async (username: string): Promise<string> => {
+    const usersRef = ref(db, 'users');
+    const userQuery = query(usersRef, orderByChild('username'), equalTo(username));
+    const snapshot = await get(userQuery);
+
+    if (snapshot.exists()) {
+        // User exists, return their key (ID)
+        return Object.keys(snapshot.val())[0];
+    } else {
+        // User does not exist, create them
+        const newUserRef = push(usersRef);
+        const newUser: UserData = {
+            user_id: newUserRef.key!,
+            username: username,
+            xp: 0
+        };
+        await set(newUserRef, newUser);
+        return newUserRef.key!;
+    }
+};
+
