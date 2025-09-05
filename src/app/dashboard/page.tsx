@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { onValue, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import type { LuckyEvent } from '@/types';
+import type { LuckyEvent, UserData } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Zap } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Zap, Loader2 } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -19,6 +19,7 @@ import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmation
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
+  const [userXp, setUserXp] = useState<number | null>(null);
   const [events, setEvents] = useState<LuckyEvent[]>([]);
   const [userEventStatus, setUserEventStatus] = useState<Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'pending'>>({});
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
@@ -95,8 +96,20 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!username) return;
 
+    // Fetch User XP
+    const usersRef = ref(db, 'users');
+    const unsubscribeUser = onValue(usersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const users = snapshot.val();
+        const userEntry = Object.values(users).find((user: any) => user.username === username) as UserData | undefined;
+        if (userEntry) {
+          setUserXp(userEntry.xp);
+        }
+      }
+    });
+
     const eventsRef = ref(db, 'events');
-    const unsubscribe = onValue(eventsRef, (snapshot) => {
+    const unsubscribeEvents = onValue(eventsRef, (snapshot) => {
       updateEvents(snapshot.val(), username);
     });
     
@@ -108,7 +121,8 @@ export default function DashboardPage() {
     }, 1000);
 
     return () => {
-      unsubscribe();
+      unsubscribeUser();
+      unsubscribeEvents();
       clearInterval(interval);
     }
   }, [username, updateEvents]);
@@ -168,9 +182,13 @@ export default function DashboardPage() {
               <Box className="h-6 w-6 text-accent" /> URA Box Pro
           </h1>
           <div className="flex items-center gap-1 sm:gap-2">
-              <div className="flex items-center gap-2 text-white bg-black/30 backdrop-blur-sm px-2.5 py-1 rounded-full">
+              <div className="flex items-center gap-2 text-white bg-black/30 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
                   <Zap className="h-4 w-4 text-blue-400"/>
-                  <span className="font-bold text-base">500</span>
+                  {userXp === null ? (
+                     <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <span className="font-bold text-base">{userXp}</span>
+                  )}
               </div>
               <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-1.5">
                 <User className="h-4 w-4" /> {username}
@@ -200,8 +218,8 @@ export default function DashboardPage() {
                             event.isHighlighted && "border-accent shadow-accent/20 shadow-lg"
                         )}>
                           {event.requiredXp && event.requiredXp > 0 && (
-                            <Badge variant="outline" className="absolute top-2 left-2 text-blue-300 border-blue-300/50 bg-black/50">
-                                <Zap className="h-3 w-3 mr-1.5"/>{event.requiredXp}
+                            <Badge variant="outline" className="absolute top-2 left-2 text-blue-300 border-blue-300/50 bg-black/50 flex items-center gap-1.5">
+                                <Zap className="h-3 w-3"/>{event.requiredXp}
                             </Badge>
                            )}
                           <CardHeader className="p-4">
@@ -265,8 +283,8 @@ export default function DashboardPage() {
                 pastEvents.map(event => (
                   <Card key={event.id} className="bg-black/30 border-white/10 text-white backdrop-blur-sm relative">
                     {event.requiredXp && event.requiredXp > 0 && (
-                        <Badge variant="outline" className="absolute top-2 left-2 text-blue-300 border-blue-300/50 bg-black/50">
-                            <Zap className="h-3 w-3 mr-1.5"/>{event.requiredXp}
+                        <Badge variant="outline" className="absolute top-2 left-2 text-blue-300 border-blue-300/50 bg-black/50 flex items-center gap-1.5">
+                            <Zap className="h-3 w-3"/>{event.requiredXp}
                         </Badge>
                      )}
                     <CardHeader className="p-4">
@@ -316,3 +334,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
