@@ -85,9 +85,9 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Manage Activities</h2>
+        <h2 className="text-lg font-bold">Manage Activities</h2>
         <div className="flex items-center gap-2">
             <Button asChild size="sm">
               <Link href="/admin/create">
@@ -102,10 +102,10 @@ export default function AdminDashboard() {
         </div>
       </div>
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Lucky Box Events</CardTitle>
+        <CardHeader className="p-4">
+          <CardTitle className="text-base">Lucky Box Events</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
@@ -168,10 +168,10 @@ export default function AdminDashboard() {
       </Card>
       
        <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Quizzes & Polls</CardTitle>
+        <CardHeader className="p-4">
+          <CardTitle className="text-base">Quizzes & Polls</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
