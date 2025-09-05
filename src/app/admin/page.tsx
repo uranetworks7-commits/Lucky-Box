@@ -85,72 +85,72 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">Manage Activities</h2>
-        <div className="flex items-center gap-2">
-            <Button asChild size="sm">
+        <h2 className="text-sm font-semibold">Manage Activities</h2>
+        <div className="flex items-center gap-1">
+            <Button asChild size="sm" className="h-7 px-2 text-xs">
               <Link href="/admin/create">
-                <PlusCircle className="mr-2 h-4 w-4" /> Create Event
+                <PlusCircle className="mr-1 h-3 w-3" /> Create Event
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="sm" className="h-7 px-2 text-xs">
               <Link href="/admin/create-quiz">
-                <HelpCircle className="mr-2 h-4 w-4" /> Create Quiz/Poll
+                <HelpCircle className="mr-1 h-3 w-3" /> Create Quiz/Poll
               </Link>
             </Button>
         </div>
       </div>
       <Card>
-        <CardHeader className="p-4">
-          <CardTitle className="text-base">Lucky Box Events</CardTitle>
+        <CardHeader className="p-2">
+          <CardTitle className="text-sm font-semibold">Lucky Box Events</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Event Name</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="h-8 px-2 text-xs">Event Name</TableHead>
+                <TableHead className="h-8 px-2 text-xs">Date</TableHead>
+                <TableHead className="h-8 px-2 text-xs">Status</TableHead>
+                <TableHead className="text-right h-8 px-2 text-xs">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">Loading events...</TableCell>
+                  <TableCell colSpan={4} className="text-center px-2 py-1 text-xs">Loading events...</TableCell>
                 </TableRow>
               ) : events.length > 0 ? (
                 events.map((event) => (
                   <TableRow key={event.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium px-2 py-1 text-xs">
                       <span className={cn(event.isHighlighted && 'animate-golden-glow text-accent')}>
                         {event.name}
                       </span>
                     </TableCell>
-                    <TableCell>{format(new Date(event.startTime), 'MMM d, yyyy')}</TableCell>
-                    <TableCell>{getActivityStatus(event)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="px-2 py-1 text-xs">{format(new Date(event.startTime), 'MMM d, yyyy')}</TableCell>
+                    <TableCell className="px-2 py-1 text-xs">{getActivityStatus(event)}</TableCell>
+                    <TableCell className="text-right px-2 py-1 text-xs">
                        <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
+                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                              <MoreHorizontal className="h-3 w-3" />
                               <span className="sr-only">Actions</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/admin/event/${event.id}`} className="flex items-center">
-                                <Eye className="mr-2 h-4 w-4" /> View
+                              <Link href={`/admin/event/${event.id}`} className="flex items-center text-xs">
+                                <Eye className="mr-2 h-3 w-3" /> View
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link href={`/admin/event/${event.id}`} className="flex items-center">
-                                <Pencil className="mr-2 h-4 w-4" /> Edit
+                              <Link href={`/admin/event/${event.id}`} className="flex items-center text-xs">
+                                <Pencil className="mr-2 h-3 w-3" /> Edit
                               </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteClick(event)} className="text-destructive flex items-center">
-                               <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            <DropdownMenuItem onClick={() => handleDeleteClick(event)} className="text-destructive flex items-center text-xs">
+                               <Trash2 className="mr-2 h-3 w-3" /> Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">No events found. Create one to get started!</TableCell>
+                  <TableCell colSpan={4} className="text-center px-2 py-1 text-xs">No events found. Create one to get started!</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -168,42 +168,42 @@ export default function AdminDashboard() {
       </Card>
       
        <Card>
-        <CardHeader className="p-4">
-          <CardTitle className="text-base">Quizzes & Polls</CardTitle>
+        <CardHeader className="p-2">
+          <CardTitle className="text-sm font-semibold">Quizzes & Polls</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Type</TableHead>
-                 <TableHead>XP</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="h-8 px-2 text-xs">Title</TableHead>
+                <TableHead className="h-8 px-2 text-xs">Type</TableHead>
+                 <TableHead className="h-8 px-2 text-xs">XP</TableHead>
+                <TableHead className="h-8 px-2 text-xs">Status</TableHead>
+                <TableHead className="text-right h-8 px-2 text-xs">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">Loading quizzes...</TableCell>
+                  <TableCell colSpan={5} className="text-center px-2 py-1 text-xs">Loading quizzes...</TableCell>
                 </TableRow>
               ) : quizzes.length > 0 ? (
                 quizzes.map((quiz) => (
                   <TableRow key={quiz.id}>
-                    <TableCell className="font-medium">{quiz.title}</TableCell>
-                    <TableCell><Badge variant="secondary" className="capitalize">{quiz.questionType}</Badge></TableCell>
-                    <TableCell>{quiz.xp}</TableCell>
-                    <TableCell>{getActivityStatus(quiz)}</TableCell>
-                    <TableCell className="text-right">
-                       <Button variant="outline" size="sm" disabled>
-                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                    <TableCell className="font-medium px-2 py-1 text-xs">{quiz.title}</TableCell>
+                    <TableCell className="px-2 py-1 text-xs"><Badge variant="secondary" className="capitalize text-xs">{quiz.questionType}</Badge></TableCell>
+                    <TableCell className="px-2 py-1 text-xs">{quiz.xp}</TableCell>
+                    <TableCell className="px-2 py-1 text-xs">{getActivityStatus(quiz)}</TableCell>
+                    <TableCell className="text-right px-2 py-1 text-xs">
+                       <Button variant="outline" size="sm" disabled className="h-6 px-2 text-xs">
+                            <Pencil className="mr-1 h-3 w-3" /> Edit
                        </Button>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">No quizzes or polls found. Create one to get started!</TableCell>
+                  <TableCell colSpan={5} className="text-center px-2 py-1 text-xs">No quizzes or polls found. Create one to get started!</TableCell>
                 </TableRow>
               )}
             </TableBody>
