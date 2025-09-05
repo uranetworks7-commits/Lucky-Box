@@ -4,7 +4,7 @@
 import { assignWinnerCode, type AssignWinnerCodeInput } from '@/ai/flows/assign-winner-code';
 import { get, ref, remove, runTransaction, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import type { LuckyEvent, QuizOrPoll } from '@/types';
+import type { LuckyEvent, QuizOrPoll, UserData } from '@/types';
 import { createUserIfNotExists } from '@/lib/firebase';
 
 export async function determineWinners(eventId: string): Promise<LuckyEvent> {
@@ -88,65 +88,66 @@ export async function submitQuizAnswer(
     const quizRef = ref(db, `quizzes/${quizId}`);
     
     try {
-        // Get or create the user's unique ID first.
         const userPushId = await createUserIfNotExists(username);
+        let awardedXp = 0;
 
         const result = await runTransaction(quizRef, (quiz: QuizOrPoll | null) => {
-            if (quiz) {
-                const now = Date.now();
-                if (now < quiz.startTime || now > quiz.endTime) {
-                    return; // Abort transaction if activity is not live
-                }
+            if (!quiz) return; // Abort if quiz doesn't exist
 
-                if (!quiz.submissions) {
-                    quiz.submissions = {};
-                }
-                
-                // Check if user has already submitted using their unique ID
-                if (quiz.submissions[userPushId]) {
-                    return; // Abort transaction
-                }
-                
-                // Record the new submission with the unique ID
-                quiz.submissions[userPushId] = {
-                    username,
-                    answers,
-                    submittedAt: now,
-                };
-
-                // Award XP to the user
-                const userRef = ref(db, `users/${userPushId}`);
-                runTransaction(userRef, (user) => {
-                    if (user) {
-                        user.xp = (user.xp || 0) + quiz.xp;
-                    }
-                    // The user is created by createUserIfNotExists, so 'else' case is not strictly necessary here
-                    // but good for safety.
-                    else {
-                        return { username: username, xp: quiz.xp, user_id: userPushId };
-                    }
-                    return user;
-                });
+            const now = Date.now();
+            if (now < quiz.startTime || now > quiz.endTime) {
+                return; // Abort transaction if activity is not live
             }
+
+            if (!quiz.submissions) {
+                quiz.submissions = {};
+            }
+            
+            // Abort if user has already submitted
+            if (quiz.submissions[userPushId]) {
+                return;
+            }
+            
+            // Record the new submission
+            quiz.submissions[userPushId] = {
+                username,
+                answers,
+                submittedAt: now,
+            };
+
+            awardedXp = quiz.xp;
             return quiz;
         });
 
-        if (result.committed) {
-             const finalSubmissions = result.snapshot.val()?.submissions;
-             // We check for committed status AND if our submission actually exists.
-             // If the transaction was aborted, committed is false.
-             if (finalSubmissions && finalSubmissions[userPushId]) {
-                return { success: true, message: `Congratulations! You've earned ${result.snapshot.val().xp} XP.` };
-             } else {
-                 return { success: false, message: 'You have already submitted an answer for this activity.' };
+        // After the transaction, check if it was successful and then update the user's XP.
+        if (result.committed && awardedXp > 0) {
+            const userRef = ref(db, `users/${userPushId}`);
+            await runTransaction(userRef, (user: UserData | null) => {
+                if (user) {
+                    user.xp = (user.xp || 0) + awardedXp;
+                }
+                // User is created by createUserIfNotExists if they don't exist
+                return user;
+            });
+            return { success: true, message: `Congratulations! You've earned ${awardedXp} XP.` };
+        } 
+        
+        // Handle cases where the transaction was aborted (e.g., already submitted)
+        if (!result.committed) {
+             const snapshot = await get(quizRef);
+             const quiz = snapshot.val();
+             const now = Date.now();
+             if (now < quiz.startTime || now > quiz.endTime) {
+                return { success: false, message: 'This activity is not currently active.' };
              }
-        } else {
-            // This path is taken if the transaction is aborted (e.g., activity ended, or user already submitted)
-            return { success: false, message: 'Activity has ended or you have already submitted.' };
+             return { success: false, message: 'You have already submitted an answer for this activity.' };
         }
 
+        // Fallback for any other scenario
+        return { success: false, message: 'Could not submit your answer.' };
+
     } catch (error) {
-        console.error("Transaction failed: ", error);
-        return { success: false, message: 'An error occurred while submitting your answer.' };
+        console.error("Error submitting quiz answer:", error);
+        return { success: false, message: 'An unknown error occurred while submitting your answer.' };
     }
 }
