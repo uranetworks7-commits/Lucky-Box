@@ -9,7 +9,7 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Star } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -169,7 +169,11 @@ export default function DashboardPage() {
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
               <Box className="h-7 w-7 text-accent" /> URA Box Pro
           </h1>
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 text-white bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                  <Star className="h-5 w-5 text-yellow-400"/>
+                  <span className="font-bold text-lg">0</span>
+              </div>
               <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                 <User className="h-5 w-5" /> {username}
               </h2>
@@ -274,6 +278,14 @@ export default function DashboardPage() {
                 </Card>
               )}
             </div>
+             <div className="mt-8 text-center">
+                <Button size="lg" asChild className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold shadow-lg hover:shadow-xl transition-shadow">
+                    <Link href="/activities">
+                        <Star className="mr-2 h-5 w-5"/>
+                        Earn XP
+                    </Link>
+                </Button>
+            </div>
           </section>
         </main>
         
@@ -294,7 +306,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
-
-    
