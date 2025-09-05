@@ -195,10 +195,15 @@ export default function DashboardPage() {
                     {upcomingEvents.map(event => (
                       <Link href={`/event/${event.id}`} key={event.id} className="group">
                         <Card className={cn(
-                            "w-full bg-black/40 border-white/20 text-white transition-all duration-300 h-full flex flex-col justify-between",
+                            "w-full bg-black/40 border-white/20 text-white transition-all duration-300 h-full flex flex-col justify-between relative",
                             "hover:bg-black/60 hover:border-accent hover:shadow-2xl hover:shadow-accent/20",
                             event.isHighlighted && "border-accent shadow-accent/20 shadow-lg"
                         )}>
+                          {event.requiredXp && event.requiredXp > 0 && (
+                            <Badge variant="outline" className="absolute top-2 left-2 text-blue-300 border-blue-300/50 bg-black/50">
+                                <Zap className="h-3 w-3 mr-1.5"/>{event.requiredXp}
+                            </Badge>
+                           )}
                           <CardHeader className="p-4">
                             <CardTitle className={cn("flex items-center justify-center gap-2 text-2xl", event.isHighlighted && 'animate-golden-glow text-accent')}>
                               {event.name}
@@ -216,13 +221,6 @@ export default function DashboardPage() {
                             ) : (
                                <Badge className="bg-red-500 hover:bg-red-600 animate-pulse text-base py-1 px-4">Live Now!</Badge>
                             )}
-                             <div className="!mt-4">
-                                {event.requiredXp && event.requiredXp > 0 ? (
-                                    <Badge variant="outline" className="text-blue-300 border-blue-300/50"><Zap className="h-3 w-3 mr-1.5"/>{event.requiredXp} XP Required</Badge>
-                                ) : (
-                                    <Badge variant="outline" className="text-green-300 border-green-300/50">Free to Join</Badge>
-                                )}
-                             </div>
                           </CardContent>
                           <div className="p-4 pt-0">
                                 {now >= event.startTime && now <= event.endTime && (
@@ -265,17 +263,16 @@ export default function DashboardPage() {
             <div className="grid gap-6 md:grid-cols-2">
               {pastEvents.length > 0 ? (
                 pastEvents.map(event => (
-                  <Card key={event.id} className="bg-black/30 border-white/10 text-white backdrop-blur-sm">
+                  <Card key={event.id} className="bg-black/30 border-white/10 text-white backdrop-blur-sm relative">
+                    {event.requiredXp && event.requiredXp > 0 && (
+                        <Badge variant="outline" className="absolute top-2 left-2 text-blue-300 border-blue-300/50 bg-black/50">
+                            <Zap className="h-3 w-3 mr-1.5"/>{event.requiredXp}
+                        </Badge>
+                     )}
                     <CardHeader className="p-4">
                       <CardTitle className="flex justify-between items-center">
                         <div className="flex flex-col">
                             <span>{event.name}</span>
-                            {event.requiredXp && event.requiredXp > 0 && (
-                                <span className="text-xs font-normal flex items-center gap-1 text-blue-400 mt-1">
-                                    <Zap className="h-3 w-3"/>
-                                    {event.requiredXp} XP Required
-                                </span>
-                            )}
                         </div>
                         {getEventStatusBadge(event.id)}
                       </CardTitle>
