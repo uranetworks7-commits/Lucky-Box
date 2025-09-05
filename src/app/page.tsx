@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { createUserIfNotExists } from '@/lib/firebase';
+import { checkUserExists } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 
 
@@ -40,9 +40,18 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-        await createUserIfNotExists(trimmedUsername);
-        localStorage.setItem('username', trimmedUsername);
-        router.push('/dashboard');
+        const userExists = await checkUserExists(trimmedUsername);
+        if (userExists) {
+            localStorage.setItem('username', trimmedUsername);
+            router.push('/dashboard');
+        } else {
+             toast({
+                title: "Login Failed",
+                description: "Incorrect username.",
+                variant: "destructive",
+            });
+            setIsLoading(false);
+        }
     } catch (error) {
         console.error("Login Error: ", error);
         toast({
@@ -78,7 +87,7 @@ export default function LoginPage() {
                 </CardContent>
                 <CardFooter>
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? <Loader2 className="animate-spin"/> : 'Login / Register'}
+                        {isLoading ? <Loader2 className="animate-spin"/> : 'Login'}
                     </Button>
                 </CardFooter>
             </form>

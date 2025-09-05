@@ -60,16 +60,12 @@ export const getMessagingToken = async () => {
 
 export const createUserIfNotExists = async (username: string): Promise<string> => {
     const usersRef = ref(db, 'users');
-    const snapshot = await get(usersRef);
+    const userQuery = query(usersRef, orderByChild('username'), equalTo(username));
+    const snapshot = await get(userQuery);
 
     if (snapshot.exists()) {
-        const users = snapshot.val();
-        const existingUserEntry = Object.entries(users).find(([id, user]) => (user as UserData).username === username);
-
-        if (existingUserEntry) {
-            // User exists, return their key (ID)
-            return existingUserEntry[0];
-        }
+        // User exists, return their key (ID)
+        return Object.keys(snapshot.val())[0];
     }
     
     // User does not exist, create them
@@ -81,4 +77,11 @@ export const createUserIfNotExists = async (username: string): Promise<string> =
     };
     await set(newUserRef, newUser);
     return newUserRef.key!;
+};
+
+export const checkUserExists = async (username: string): Promise<boolean> => {
+    const usersRef = ref(db, 'users');
+    const userQuery = query(usersRef, orderByChild('username'), equalTo(username));
+    const snapshot = await get(userQuery);
+    return snapshot.exists();
 };
