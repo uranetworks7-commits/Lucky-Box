@@ -9,12 +9,12 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent, UserData } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Zap, Loader2 } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Zap, Loader2, Lock } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { determineWinners, unlockEvent } from '../actions';
+import { determineWinners, registerForEvent } from '../actions';
 import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
   const [isExitConfirmationDialogOpen, setIsExitConfirmationDialogOpen] = useState(false);
-  const [unlockingEventId, setUnlockingEventId] = useState<string | null>(null);
+  const [registeringEventId, setRegisteringEventId] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -130,16 +130,17 @@ export default function DashboardPage() {
     }
   }, [username, updateEvents]);
 
-  const handleUnlockEvent = async (event: LuckyEvent) => {
-      if (!username || !event.requiredXp) return;
-      setUnlockingEventId(event.id);
-      const result = await unlockEvent(event.id, username);
+  const handleRegisterEvent = async (event: LuckyEvent) => {
+      if (!username) return;
+      setRegisteringEventId(event.id);
+      const result = await registerForEvent(event.id, username);
       if (result.success) {
           toast({title: "Success", description: result.message});
+          router.push(`/event/${event.id}`);
       } else {
-          toast({title: "Unlock Failed", description: result.message, variant: "destructive"});
+          toast({title: "Registration Failed", description: result.message, variant: "destructive"});
       }
-      setUnlockingEventId(null);
+      setRegisteringEventId(null);
   }
   
   const handleAdminAccessClick = () => {
@@ -238,7 +239,7 @@ export default function DashboardPage() {
                         )}>
                          {event.requiredXp && event.requiredXp > 0 && (
                              <Badge variant="outline" className="absolute top-2 left-2 text-yellow-300 border-yellow-400 bg-black/50 flex items-center gap-1.5">
-                                <Zap className="h-3 w-3"/>{event.requiredXp} XP
+                                <Zap className="h-3 w-3"/>{event.requiredXp} XP Required
                             </Badge>
                         )}
                           <CardHeader className="p-4">
@@ -268,9 +269,9 @@ export default function DashboardPage() {
                                         </Link>
                                     </Button>
                                 ) : event.requiredXp && event.requiredXp > 0 ? (
-                                    <Button size="lg" className="w-full font-semibold text-lg" onClick={() => handleUnlockEvent(event)} disabled={unlockingEventId === event.id}>
-                                         {unlockingEventId === event.id ? <Loader2 className="animate-spin" /> : <Lock className="mr-2 h-5 w-5" />}
-                                        Unlock for {event.requiredXp} XP
+                                    <Button size="lg" className="w-full font-semibold text-lg" onClick={() => handleRegisterEvent(event)} disabled={registeringEventId === event.id}>
+                                         {registeringEventId === event.id ? <Loader2 className="animate-spin" /> : <Lock className="mr-2 h-5 w-5" />}
+                                        Join Event
                                     </Button>
                                 ) : (
                                      <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90" asChild>
@@ -316,7 +317,7 @@ export default function DashboardPage() {
                 pastEvents.map(event => (
                   <Card key={event.id} className="bg-black/30 border-white/10 text-white backdrop-blur-sm relative">
                     {event.requiredXp && event.requiredXp > 0 && (
-                        <Badge variant="outline" className="absolute top-2 left-2 text-blue-300 border-blue-300/50 bg-black/50 flex items-center gap-1.5">
+                        <Badge variant="outline" className="absolute top-2 left-2 text-yellow-300 border-yellow-400 bg-black/50 flex items-center gap-1.5">
                             <Zap className="h-3 w-3"/>{event.requiredXp}
                         </Badge>
                      )}
@@ -369,4 +370,3 @@ export default function DashboardPage() {
 }
 
     
-
