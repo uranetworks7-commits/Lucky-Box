@@ -2,7 +2,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { onValue, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
@@ -13,11 +14,13 @@ import { ArrowLeft, Pencil, Users, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { EditCodesDialog } from '@/components/lucky-draw/EditCodesDialog';
-import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 export default function EventDetailsPage() {
   const params = useParams();
   const eventId = params.id as string;
+  const router = useRouter();
+  const { toast } = useToast();
   const [event, setEvent] = useState<LuckyEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -30,12 +33,18 @@ export default function EventDetailsPage() {
         setEvent({ id: eventId, ...snapshot.val() });
       } else {
         setEvent(null);
+        toast({ title: "Error", description: "Event not found.", variant: "destructive" });
+        router.push('/admin');
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [eventId]);
+  }, [eventId, router, toast]);
+  
+  const handleEdit = () => {
+    router.push(`/admin/edit-event/${eventId}`);
+  }
 
   if (loading) {
     return <div className="text-center p-8">Loading event details...</div>;
@@ -103,12 +112,17 @@ export default function EventDetailsPage() {
                 <Link href="/admin"><ArrowLeft/> Back</Link>
             </Button>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div><strong>Start:</strong> {format(new Date(event.startTime), 'Pp')}</div>
-            <div><strong>End:</strong> {format(new Date(event.endTime), 'Pp')}</div>
-            <div><strong>Results:</strong> {format(new Date(event.resultTime), 'Pp')}</div>
-            <div className="flex items-center gap-2"><strong>Mode:</strong> <Badge variant="outline">{event.selectionMode}</Badge></div>
-            {event.selectionMode === 'custom' && <div><strong>Slots:</strong> {customSlots}</div>}
+          <CardContent className="space-y-3">
+            <div className="space-y-1 text-sm">
+                <div><strong>Start:</strong> {format(new Date(event.startTime), 'Pp')}</div>
+                <div><strong>End:</strong> {format(new Date(event.endTime), 'Pp')}</div>
+                <div><strong>Results:</strong> {format(new Date(event.resultTime), 'Pp')}</div>
+                <div className="flex items-center gap-2"><strong>Mode:</strong> <Badge variant="outline">{event.selectionMode}</Badge></div>
+                {event.selectionMode === 'custom' && <div><strong>Slots:</strong> {customSlots}</div>}
+            </div>
+             <Button className="w-full" onClick={handleEdit}>
+                <Pencil className="mr-2 h-4 w-4" /> Edit Event Details
+            </Button>
           </CardContent>
         </Card>
         <Card>
