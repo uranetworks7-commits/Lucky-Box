@@ -246,9 +246,17 @@ export default function DashboardPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 flex items-center gap-2">
-              <History className="h-7 w-7"/> Past Events
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
+                    <History className="h-7 w-7"/> Past Events
+                </h2>
+                <Button asChild className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-bold shadow-lg hover:shadow-xl transition-shadow">
+                    <Link href="/activities">
+                        <Zap className="mr-2 h-5 w-5"/>
+                        Get XP ⚡
+                    </Link>
+                </Button>
+            </div>
             <div className="grid gap-6 md:grid-cols-2">
               {pastEvents.length > 0 ? (
                 pastEvents.map(event => (
@@ -281,15 +289,6 @@ export default function DashboardPage() {
           </section>
         </main>
         
-        <div className="fixed bottom-4 left-4">
-             <Button size="lg" asChild className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-bold shadow-lg hover:shadow-xl transition-shadow">
-                <Link href="/activities">
-                    <Zap className="mr-2 h-5 w-5"/>
-                    Earn XP ⚡
-                </Link>
-            </Button>
-        </div>
-        
         <div className="fixed bottom-4 right-4">
             <Button variant="ghost" size="icon" onClick={handleAdminAccessClick} className="text-white bg-black/50 hover:bg-white/20 rounded-full h-12 w-12">
                 <Crown className="h-6 w-6" />
@@ -307,8 +306,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
-
-    
-
