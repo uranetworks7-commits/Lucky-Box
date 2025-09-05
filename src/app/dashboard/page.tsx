@@ -14,8 +14,9 @@ import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { determineWinners } from '../actions';
+import { determineWinners, unlockEvent } from '../actions';
 import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
@@ -26,7 +27,9 @@ export default function DashboardPage() {
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
   const [isExitConfirmationDialogOpen, setIsExitConfirmationDialogOpen] = useState(false);
+  const [unlockingEventId, setUnlockingEventId] = useState<string | null>(null);
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -126,6 +129,18 @@ export default function DashboardPage() {
       clearInterval(interval);
     }
   }, [username, updateEvents]);
+
+  const handleUnlockEvent = async (event: LuckyEvent) => {
+      if (!username || !event.requiredXp) return;
+      setUnlockingEventId(event.id);
+      const result = await unlockEvent(event.id, username);
+      if (result.success) {
+          toast({title: "Success", description: result.message});
+      } else {
+          toast({title: "Unlock Failed", description: result.message, variant: "destructive"});
+      }
+      setUnlockingEventId(null);
+  }
   
   const handleAdminAccessClick = () => {
     const now = Date.now();
@@ -169,6 +184,11 @@ export default function DashboardPage() {
         default: return null;
     }
   }
+  
+  const isUserRegistered = (event: LuckyEvent) => {
+    if (!username) return false;
+    return Object.values(event.registeredUsers || {}).includes(username);
+  }
 
   const now = Date.now();
   const upcomingEvents = events.filter(e => e.endTime > now);
@@ -211,20 +231,16 @@ export default function DashboardPage() {
                     </h2>
                     <div className="grid gap-6 md:grid-cols-2">
                     {upcomingEvents.map(event => (
-                      <Link href={`/event/${event.id}`} key={event.id} className="group relative">
-                        {event.requiredXp && event.requiredXp > 0 && (
-                             <Badge variant="outline" className={cn("absolute top-2 left-2 text-yellow-300 border-yellow-300/50 bg-black/50 flex items-center gap-1.5",
-                             now < event.startTime ? "text-yellow-300 border-yellow-300/50" : "text-blue-300 border-blue-300/50"
-                             )}>
-                                <Zap className="h-3 w-3"/>{event.requiredXp}
-                            </Badge>
-                        )}
-                        <Card className={cn(
-                            "w-full bg-black/40 border-white/20 text-white transition-all duration-300 h-full flex flex-col justify-between",
+                       <Card key={event.id} className={cn(
+                            "w-full bg-black/40 border-white/20 text-white transition-all duration-300 h-full flex flex-col justify-between group relative",
                             "hover:bg-black/60 hover:border-accent hover:shadow-2xl hover:shadow-accent/20",
                             event.isHighlighted && "border-accent shadow-accent/20 shadow-lg"
                         )}>
-                          
+                         {event.requiredXp && event.requiredXp > 0 && (
+                             <Badge variant="outline" className="absolute top-2 left-2 text-yellow-300 border-yellow-400 bg-black/50 flex items-center gap-1.5">
+                                <Zap className="h-3 w-3"/>{event.requiredXp} XP
+                            </Badge>
+                        )}
                           <CardHeader className="p-4">
                             <CardTitle className={cn("flex items-center justify-center gap-2 text-2xl", event.isHighlighted && 'animate-golden-glow text-accent')}>
                               {event.name}
@@ -244,15 +260,29 @@ export default function DashboardPage() {
                             )}
                           </CardContent>
                           <div className="p-4 pt-0">
-                                {now >= event.startTime && now <= event.endTime && (
-                                    <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">
-                                        <Box className="mr-2 h-5 w-5" />
-                                        Registered <ArrowRight className="ml-2 h-5 w-5" />
+                                {isUserRegistered(event) ? (
+                                     <Button size="lg" className="w-full font-semibold text-lg" asChild>
+                                        <Link href={`/event/${event.id}`}>
+                                            <Eye className="mr-2 h-5 w-5" />
+                                            View Event
+                                        </Link>
+                                    </Button>
+                                ) : event.requiredXp && event.requiredXp > 0 ? (
+                                    <Button size="lg" className="w-full font-semibold text-lg" onClick={() => handleUnlockEvent(event)} disabled={unlockingEventId === event.id}>
+                                         {unlockingEventId === event.id ? <Loader2 className="animate-spin" /> : <Lock className="mr-2 h-5 w-5" />}
+                                        Unlock for {event.requiredXp} XP
+                                    </Button>
+                                ) : (
+                                     <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90" asChild>
+                                        <Link href={`/event/${event.id}`}>
+                                            <Ticket className="mr-2 h-5 w-5"/>
+                                            Join Free Event
+                                            <ArrowRight className="ml-2 h-5 w-5" />
+                                        </Link>
                                     </Button>
                                 )}
                           </div>
                         </Card>
-                      </Link>
                     ))}
                     </div>
                 </>
@@ -339,3 +369,4 @@ export default function DashboardPage() {
 }
 
     
+
