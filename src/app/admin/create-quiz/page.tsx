@@ -40,7 +40,16 @@ export default function CreateQuizPage() {
 
   const handleQuestionChange = (qIndex: number, field: keyof Question, value: any) => {
     const newQuestions = [...questions];
-    newQuestions[qIndex] = { ...newQuestions[qIndex], [field]: value };
+    const question = { ...newQuestions[qIndex], [field]: value };
+
+    // Reset fields when changing question type
+    if (field === 'questionType') {
+        question.options = (value === 'mcq' || value === 'poll') ? ['', ''] : undefined;
+        question.correctAnswer = undefined;
+        question.imageUrl = '';
+    }
+
+    newQuestions[qIndex] = question;
     setQuestions(newQuestions);
   };
   
@@ -116,12 +125,19 @@ export default function CreateQuizPage() {
 
     setIsSubmitting(true);
     
-    const finalQuestions = questions.map(q => ({
-        ...q,
-        options: (q.questionType === 'mcq' || q.questionType === 'poll') ? q.options?.map(o => o.trim()).filter(Boolean) : undefined,
-        correctAnswer: q.questionType === 'mcq' ? q.correctAnswer : null,
-        imageUrl: q.questionType === 'image' ? q.imageUrl : '',
-    }));
+    const finalQuestions = questions.map(q => {
+        const newQ = { ...q };
+        if (q.questionType !== 'mcq' && q.questionType !== 'poll') {
+            delete newQ.options;
+        }
+        if (q.questionType !== 'mcq') {
+            delete newQ.correctAnswer;
+        }
+        if (q.questionType !== 'image') {
+            delete newQ.imageUrl
+        }
+        return newQ;
+    });
 
     const newQuiz: Omit<QuizOrPoll, 'id'> = {
       title,
@@ -129,6 +145,7 @@ export default function CreateQuizPage() {
       endTime: new Date(endTime).getTime(),
       xp: Number(xp),
       questions: finalQuestions,
+      questionType: questions[0].questionType,
     };
 
     try {

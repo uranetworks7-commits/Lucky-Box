@@ -39,6 +39,7 @@ export interface QuizOrPoll {
     endTime: number;
     xp: number;
     questions: Question[];
+    questionType: QuestionType;
     submissions?: Record<string, Submission>; // userPushId: submission
 }
 
