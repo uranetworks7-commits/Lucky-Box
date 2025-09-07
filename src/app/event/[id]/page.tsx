@@ -11,10 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Countdown } from '@/components/lucky-draw/Countdown';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift, Box, Sparkles, Zap } from 'lucide-react';
+import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift, Box, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { registerForEvent } from '@/app/actions';
-import { RegistrationDialog } from '@/components/lucky-draw/RegistrationDialog';
 
 type EventStatus = 'loading' | 'upcoming' | 'live' | 'ended' | 'results' | 'not_found';
 type RegistrationStatus = 'unregistered' | 'registering' | 'registered';
@@ -23,14 +21,12 @@ export default function EventPage() {
   const params = useParams();
   const eventId = params.id as string;
   const router = useRouter();
-  const { toast } = useToast();
 
   const [username, setUsername] = useState<string | null>(null);
   const [event, setEvent] = useState<LuckyEvent | null>(null);
   const [eventStatus, setEventStatus] = useState<EventStatus>('loading');
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus>('unregistered');
   const [showResultsLink, setShowResultsLink] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -77,15 +73,6 @@ export default function EventPage() {
     return () => unsubscribe();
   }, [eventId, username, updateStatus]);
   
-  const handleRegister = async () => {
-    // For free events, this page handles registration directly.
-    if (!username || !event || registrationStatus !== 'unregistered') return;
-    
-    // Paid events are handled on the dashboard, this button shouldn't even be shown.
-    if (event.requiredXp && event.requiredXp > 0) return;
-
-    setIsRegistering(true);
-  };
 
   const onCountdownEnd = () => {
     updateStatus(event);
@@ -131,8 +118,8 @@ export default function EventPage() {
           <Sparkles className="h-16 w-16 text-red-400 mx-auto animate-pulse" />
           <h3 className="text-3xl font-bold text-white">The Event is LIVE!</h3>
           <p className="text-red-200/90">Your chance to win is now. Don't miss out!</p>
-          <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 text-lg font-bold animate-pulse" disabled={registrationStatus !== 'unregistered'}>
-            <Box className="mr-2 h-6 w-6"/> Register
+           <Button asChild size="lg" className="w-full bg-red-600 hover:bg-red-700 text-lg font-bold animate-pulse" disabled={registrationStatus !== 'unregistered'}>
+            <Link href={`/register/${eventId}`}><Box className="mr-2 h-6 w-6"/> Register</Link>
           </Button>
         </div>
       );
@@ -185,15 +172,6 @@ export default function EventPage() {
             {renderContent()}
         </CardContent>
       </Card>
-      {isRegistering && event && username && (
-         <RegistrationDialog 
-            open={isRegistering}
-            onOpenChange={setIsRegistering}
-            event={event}
-            username={username}
-            user={null} // For free events, user data isn't needed for checks here
-         />
-      )}
     </main>
   );
 }

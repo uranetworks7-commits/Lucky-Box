@@ -14,9 +14,10 @@ import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { determineWinners } from '../actions';
+import { determineWinners, registerForEvent } from '../actions';
 import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
-import { RegistrationDialog } from '@/components/lucky-draw/RegistrationDialog';
+import { useToast } from '@/hooks/use-toast';
+
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
@@ -27,8 +28,8 @@ export default function DashboardPage() {
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
   const [isExitConfirmationDialogOpen, setIsExitConfirmationDialogOpen] = useState(false);
-  const [selectedEventForRegistration, setSelectedEventForRegistration] = useState<LuckyEvent | null>(null);
-
+  
+  const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -163,6 +164,16 @@ export default function DashboardPage() {
     }
     setLastClickTime(now);
   };
+
+  const handleUnlockEvent = async (event: LuckyEvent) => {
+    if (!username || !userData) return;
+    const result = await registerForEvent(event.id, username);
+    toast({
+        title: result.success ? 'Success' : 'Error',
+        description: result.message,
+        variant: result.success ? 'default' : 'destructive'
+    });
+  }
   
   const handleLogout = () => {
     localStorage.removeItem('username');
@@ -199,18 +210,18 @@ export default function DashboardPage() {
     }
     if (status === 'unlocked') {
         if (isLive) {
-            return <Button onClick={() => setSelectedEventForRegistration(event)} size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90 animate-pulse">Join Event <ArrowRight className="ml-2 h-5 w-5" /></Button>
+            return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90 animate-pulse"><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>
         }
         return <Button asChild size="lg" className="w-full font-semibold text-lg bg-blue-600 hover:bg-blue-700"><Link href={`/event/${event.id}`}>View Event <Eye className="ml-2 h-5 w-5" /></Link></Button>;
     }
     
     // Default case: not unlocked, not registered
     if (event.requiredXp && event.requiredXp > 0) {
-        return <Button onClick={() => setSelectedEventForRegistration(event)} size="lg" className="w-full font-semibold text-lg bg-gray-600 hover:bg-gray-700"><Lock className="mr-2 h-5 w-5"/>Unlock Event</Button>;
+        return <Button onClick={() => handleUnlockEvent(event)} size="lg" className="w-full font-semibold text-lg bg-gray-600 hover:bg-gray-700"><Lock className="mr-2 h-5 w-5"/>Unlock Event</Button>;
     }
 
     // Free event
-    return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90"><Link href={`/event/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
+    return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90"><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
 }
 
 
@@ -325,7 +336,7 @@ export default function DashboardPage() {
                     <CardHeader className="p-4">
                       <CardTitle className="flex justify-between items-center">
                         <span>{event.name}</span>
-                        <div className="flex items-center gap-2">
+                         <div className="flex items-center gap-2">
                            {event.requiredXp && event.requiredXp > 0 && (
                                 <Badge variant="outline" className="text-yellow-300 border-yellow-300/50 bg-black/50 flex items-center gap-1.5">
                                     <Zap className="h-3 w-3"/>{event.requiredXp}
@@ -370,18 +381,7 @@ export default function DashboardPage() {
             onConfirm={handleExitConfirm}
             onCancel={handleExitCancel}
         />
-         {selectedEventForRegistration && username && userData && (
-            <RegistrationDialog 
-                open={!!selectedEventForRegistration}
-                onOpenChange={() => setSelectedEventForRegistration(null)}
-                event={selectedEventForRegistration}
-                username={username}
-                user={userData}
-            />
-        )}
       </div>
     </div>
   );
 }
-
-    

@@ -110,7 +110,7 @@ export async function registerForEvent(eventId: string, username: string): Promi
             if (userData.pendingXpSpend && userData.pendingXpSpend > 0) {
                 return { success: false, message: "Registration Failed: Please pay your pending XP in Settings first." };
             }
-            const eventUserRef = push(ref(db, `events/${eventId}/registeredUsers`));
+            const eventUserRef = ref(db, `events/${eventId}/registeredUsers/${userPushId}`);
             await set(eventUserRef, username);
             return { success: true, message: "Registration successful!" };
         }
@@ -123,7 +123,7 @@ export async function registerForEvent(eventId: string, username: string): Promi
         if (Object.values(event.registeredUsers || {}).includes(username)) {
             return { success: true, message: "You are already registered for this event." };
         }
-        const eventUserRef = push(ref(db, `events/${eventId}/registeredUsers`));
+        const eventUserRef = ref(db, `events/${eventId}/registeredUsers/${userPushId}`);
         await set(eventUserRef, username);
         return { success: true, message: "Registration successful!" };
     }
