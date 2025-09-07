@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { determineWinners, registerForEvent } from '../actions';
 import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
 import { useToast } from '@/hooks/use-toast';
+import { RegistrationDialog } from '@/components/lucky-draw/RegistrationDialog';
 
 
 export default function DashboardPage() {
@@ -28,6 +29,8 @@ export default function DashboardPage() {
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
   const [isExitConfirmationDialogOpen, setIsExitConfirmationDialogOpen] = useState(false);
+  const [isRegistrationDialogOpen, setIsRegistrationDialogOpen] = useState(false);
+  const [selectedEventForRegistration, setSelectedEventForRegistration] = useState<LuckyEvent | null>(null);
   
   const { toast } = useToast();
   const router = useRouter();
@@ -174,6 +177,11 @@ export default function DashboardPage() {
         variant: result.success ? 'default' : 'destructive'
     });
   }
+
+  const handleJoinClick = (event: LuckyEvent) => {
+    setSelectedEventForRegistration(event);
+    setIsRegistrationDialogOpen(true);
+  }
   
   const handleLogout = () => {
     localStorage.removeItem('username');
@@ -210,7 +218,7 @@ export default function DashboardPage() {
     }
     if (status === 'unlocked') {
         if (isLive) {
-            return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90 animate-pulse"><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>
+            return <Button onClick={() => handleJoinClick(event)} size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90 animate-pulse">Join Event <ArrowRight className="ml-2 h-5 w-5" /></Button>
         }
         return <Button asChild size="lg" className="w-full font-semibold text-lg bg-blue-600 hover:bg-blue-700"><Link href={`/event/${event.id}`}>View Event <Eye className="ml-2 h-5 w-5" /></Link></Button>;
     }
@@ -221,7 +229,10 @@ export default function DashboardPage() {
     }
 
     // Free event
-    return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90"><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
+    if (isLive) {
+       return <Button onClick={() => handleJoinClick(event)} size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">Join Event <ArrowRight className="ml-2 h-5 w-5" /></Button>;
+    }
+     return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90" disabled><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
 }
 
 
@@ -381,7 +392,16 @@ export default function DashboardPage() {
             onConfirm={handleExitConfirm}
             onCancel={handleExitCancel}
         />
+        {selectedEventForRegistration && (
+            <RegistrationDialog 
+                open={isRegistrationDialogOpen}
+                onOpenChange={setIsRegistrationDialogOpen}
+                event={selectedEventForRegistration}
+            />
+        )}
       </div>
     </div>
   );
 }
+
+    
