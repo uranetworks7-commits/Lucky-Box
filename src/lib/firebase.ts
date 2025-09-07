@@ -79,3 +79,16 @@ export const createUserIfNotExists = async (username: string): Promise<string> =
     await set(newUserRef, newUser);
     return newUserRef.key!;
 };
+
+export const signInUser = async (username: string): Promise<{success: boolean, message: string, userId?: string}> => {
+    const usersRef = ref(db, 'users');
+    const userQuery = query(usersRef, orderByChild('username'), equalTo(username));
+    const snapshot = await get(userQuery);
+
+    if (snapshot.exists()) {
+        const userId = Object.keys(snapshot.val())[0];
+        return { success: true, message: 'Login successful', userId: userId };
+    } else {
+        return { success: false, message: 'Username not found. Please register first.' };
+    }
+}

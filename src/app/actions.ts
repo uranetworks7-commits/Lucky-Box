@@ -5,7 +5,7 @@ import { assignWinnerCode, type AssignWinnerCodeInput } from '@/ai/flows/assign-
 import { get, ref, remove, runTransaction, update, push, set } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import type { LuckyEvent, QuizOrPoll, UserData } from '@/types';
-import { createUserIfNotExists } from '@/lib/firebase';
+import { createUserIfNotExists, signInUser } from '@/lib/firebase';
 
 export async function determineWinners(eventId: string): Promise<LuckyEvent> {
   const eventRef = ref(db, `events/${eventId}`);
@@ -77,7 +77,12 @@ export async function registerForEvent(eventId: string, username: string): Promi
     }
     const event: LuckyEvent = eventSnapshot.val();
 
-    const userPushId = await createUserIfNotExists(username);
+    const userResult = await signInUser(username);
+    if (!userResult.success || !userResult.userId) {
+         return { success: false, message: "User not found. Please log in again." };
+    }
+    const userPushId = userResult.userId;
+    
     const userRef = ref(db, `users/${userPushId}`);
     const userSnapshot = await get(userRef);
     if (!userSnapshot.exists()) {
@@ -131,7 +136,11 @@ export async function registerForEvent(eventId: string, username: string): Promi
 }
 
 export async function payPendingXp(username: string): Promise<{success: boolean, message: string}> {
-    const userPushId = await createUserIfNotExists(username);
+    const userResult = await signInUser(username);
+    if (!userResult.success || !userResult.userId) {
+         return { success: false, message: "User not found. Please log in again." };
+    }
+    const userPushId = userResult.userId;
     const userRef = ref(db, `users/${userPushId}`);
     
     return runTransaction(userRef, (user: UserData | null) => {
@@ -186,7 +195,12 @@ export async function submitQuizAnswer(
     const quizRef = ref(db, `quizzes/${quizId}`);
     
     try {
-        const userPushId = await createUserIfNotExists(username);
+        const userResult = await signInUser(username);
+        if (!userResult.success || !userResult.userId) {
+            return { success: false, message: 'User not found. Please log in again.' };
+        }
+        const userPushId = userResult.userId;
+
 
         // Fetch the current quiz data first to perform checks
         const quizSnapshot = await get(quizRef);

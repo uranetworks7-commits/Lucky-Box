@@ -8,13 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { createUserIfNotExists } from '@/lib/firebase';
+import { signInUser } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [verifying, setVerifying] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -22,6 +23,8 @@ export default function LoginPage() {
     const storedUsername = localStorage.getItem('username');
     if (storedUsername) {
       router.push('/dashboard');
+    } else {
+        setVerifying(false);
     }
   }, [router]);
 
@@ -40,9 +43,18 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-        await createUserIfNotExists(trimmedUsername);
-        localStorage.setItem('username', trimmedUsername);
-        router.push('/dashboard');
+        const result = await signInUser(trimmedUsername);
+        if (result.success) {
+            localStorage.setItem('username', trimmedUsername);
+            router.push('/dashboard');
+        } else {
+            toast({
+                title: "Login Failed",
+                description: result.message,
+                variant: "destructive",
+            });
+            setIsLoading(false);
+        }
     } catch (error) {
         console.error("Login Error: ", error);
         toast({
@@ -53,6 +65,14 @@ export default function LoginPage() {
         setIsLoading(false);
     }
   };
+
+  if (verifying) {
+    return (
+        <main className="flex items-center justify-center min-h-screen bg-black">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </main>
+    )
+  }
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')"}}>
@@ -78,7 +98,7 @@ export default function LoginPage() {
                 </CardContent>
                 <CardFooter>
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? <Loader2 className="animate-spin"/> : 'Login / Register'}
+                        {isLoading ? <Loader2 className="animate-spin"/> : 'Login'}
                     </Button>
                 </CardFooter>
             </form>
