@@ -7,7 +7,7 @@ import { onValue, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Box, Calendar, Clock, Loader2 } from 'lucide-react';
+import { Box, Calendar, Clock, Loader2, Gift } from 'lucide-react';
 import { registerForEvent } from '@/app/actions';
 import { TerminalAnimation } from '@/components/lucky-draw/TerminalAnimation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -105,12 +105,15 @@ export default function RegisterPage() {
   return (
     <main className="flex items-center justify-center min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')"}}>
         <div className="absolute inset-0 bg-black/60"></div>
-        <Card className="w-full max-w-md z-10 bg-black/40 border-white/20 text-white text-center">
-            <CardHeader>
-                <CardTitle className="text-3xl font-bold">{event.name}</CardTitle>
-                <CardDescription className="text-white/70">You are about to enter the event. Good luck!</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+        <Card className="w-full max-w-md z-10 bg-black/40 border-white/20 text-white text-center p-4">
+            <CardContent className="space-y-6 flex flex-col items-center">
+                <div className="p-4 bg-green-500/20 rounded-full">
+                    <Gift className="h-24 w-24 text-green-400" />
+                </div>
+                 <div>
+                    <CardTitle className="text-3xl font-bold">{event.name}</CardTitle>
+                    <CardDescription className="text-white/70 mt-2">You are about to enter the event. Good luck!</CardDescription>
+                </div>
                 <div className="flex justify-center items-center gap-6 text-lg text-white/80">
                     <div className="flex items-center gap-2"><Calendar className="h-5 w-5"/> {format(new Date(event.startTime), 'MMM d, p')}</div>
                     <div className="flex items-center gap-2"><Clock className="h-5 w-5"/> {format(new Date(event.endTime), 'p')}</div>
@@ -124,5 +127,4 @@ export default function RegisterPage() {
     </main>
   );
 }
-
     
