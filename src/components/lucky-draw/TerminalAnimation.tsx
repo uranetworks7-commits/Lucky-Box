@@ -38,9 +38,9 @@ export function TerminalAnimation({ onComplete, success, message }: { onComplete
     }, intervalDelay);
 
     return () => clearInterval(interval);
-  }, [onComplete]);
+  }, []);
 
-  const isErrorLine = (line: string) => !success && (line.includes('Failed') || line.includes('400'));
+  const isErrorLine = (line: string) => !success && line && (line.includes('Failed') || line.includes('400'));
 
   return (
     <div className={cn("bg-gray-900 font-mono text-sm p-4 rounded-lg h-64 overflow-y-auto", success ? "text-green-400" : "text-red-400")}>

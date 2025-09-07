@@ -35,7 +35,7 @@ export function RegistrationDialog({ open, onOpenChange, event, username, user }
         setIsRegistering(false);
         setRegistrationResult(null);
     }
-  }, [open]);
+  }, [open, isRegistering, registrationResult]);
 
   const handleRegistration = async () => {
     setIsRegistering(true);
@@ -43,13 +43,14 @@ export function RegistrationDialog({ open, onOpenChange, event, username, user }
     // The action handles the logic based on event/user state.
     const result = await registerForEvent(event.id, username);
     
-    // For unlock actions, show a toast immediately.
-    if (result.message.includes('Unlocked')) {
+    // For unlock actions that don't show the terminal, show a toast immediately.
+    const isUnlockOnly = event.requiredXp && event.requiredXp > 0 && !result.message.includes('successful');
+    if (isUnlockOnly) {
         toast({ title: 'Success!', description: result.message });
         onOpenChange(false);
         return;
     }
-
+    
     // For final registration, we show the terminal animation.
     setRegistrationResult(result);
     // The onComplete in TerminalAnimation will close the dialog.
@@ -73,7 +74,9 @@ export function RegistrationDialog({ open, onOpenChange, event, username, user }
                 onComplete={handleAnimationComplete} 
             />
           ) : (
-            <p>Processing registration...</p>
+            <div className="flex items-center justify-center h-64">
+              <p>Processing registration...</p>
+            </div>
           )}
         </div>
       </DialogContent>
