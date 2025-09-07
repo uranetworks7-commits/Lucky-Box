@@ -20,7 +20,7 @@ export default function RegisterPage() {
   const [event, setEvent] = useState<LuckyEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
-  const [registrationResult, setRegistrationResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [registrationResult, setRegistrationResult] = useState<{ success: boolean; message: string, eventId?: string } | null>(null);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -54,7 +54,11 @@ export default function RegisterPage() {
   };
   
   const handleAnimationComplete = () => {
-      router.push(`/event/${eventId}`);
+      if (registrationResult?.success && registrationResult.eventId) {
+        router.push(`/event/${registrationResult.eventId}`);
+      } else {
+        router.push('/dashboard');
+      }
   }
 
   if (loading || !event) {
@@ -91,5 +95,3 @@ export default function RegisterPage() {
     </main>
   );
 }
-
-    

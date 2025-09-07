@@ -17,7 +17,6 @@ import { cn } from '@/lib/utils';
 import { determineWinners, registerForEvent } from '../actions';
 import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
 import { useToast } from '@/hooks/use-toast';
-import { RegistrationDialog } from '@/components/lucky-draw/RegistrationDialog';
 
 
 export default function DashboardPage() {
@@ -29,8 +28,6 @@ export default function DashboardPage() {
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
   const [isExitConfirmationDialogOpen, setIsExitConfirmationDialogOpen] = useState(false);
-  const [isRegistrationDialogOpen, setIsRegistrationDialogOpen] = useState(false);
-  const [selectedEventForRegistration, setSelectedEventForRegistration] = useState<LuckyEvent | null>(null);
   
   const { toast } = useToast();
   const router = useRouter();
@@ -80,12 +77,12 @@ export default function DashboardPage() {
       
       const status: Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'unlocked' | 'pending'> = {};
       allEvents.forEach(event => {
-          const userEntry = Object.entries(event.registeredUsers || {}).find(([_, name]) => name === currentUsername);
-          const userId = userEntry ? userEntry[0] : null;
-          const isRegistered = !!userId;
+          const isRegistered = !!(event.registeredUsers && Object.values(event.registeredUsers).includes(currentUsername));
           const isUnlocked = !!(event.id && currentUserData.unlockedEvents?.[event.id]);
 
           if (now > event.resultTime && event.winners !== undefined) { // Result time has passed and winners are determined
+              const userEntry = Object.entries(event.registeredUsers || {}).find(([_, name]) => name === currentUsername);
+              const userId = userEntry ? userEntry[0] : null;
               const isWinner = !!(userId && event.winners?.includes(userId));
               if (isRegistered) {
                   status[event.id] = isWinner ? 'won' : 'lost';
@@ -113,7 +110,12 @@ export default function DashboardPage() {
         const users = snapshot.val();
         const userEntry = Object.entries(users).find(([id, user]: [string, any]) => user.username === username);
         if (userEntry) {
-          setUserData({ user_id: userEntry[0], ...userEntry[1] });
+          const userData = { user_id: userEntry[0], ...userEntry[1] };
+          setUserData(userData);
+          // When user data changes, re-evaluate event statuses
+          onValue(ref(db, 'events'), (eventSnapshot) => {
+             updateEvents(eventSnapshot.val(), userData);
+          }, { onlyOnce: true });
         }
       }
     });
@@ -178,11 +180,6 @@ export default function DashboardPage() {
     });
   }
 
-  const handleJoinClick = (event: LuckyEvent) => {
-    setSelectedEventForRegistration(event);
-    setIsRegistrationDialogOpen(true);
-  }
-  
   const handleLogout = () => {
     localStorage.removeItem('username');
     localStorage.removeItem('isAdmin');
@@ -211,11 +208,15 @@ export default function DashboardPage() {
 
   const renderEventButton = (event: LuckyEvent) => {
     const status = userEventStatus[event.id];
+    const now = Date.now();
     const isLive = now >= event.startTime && now <= event.endTime;
 
+    // User is fully registered for the event
     if (status === 'registered') {
-        return <Button asChild size="lg" className="w-full font-semibold text-lg bg-green-600 hover:bg-green-700 pointer-events-none"><Link href={`/event/${event.id}`}>Registered <CheckCircle className="ml-2 h-5 w-5" /></Link></Button>;
+        return <Button asChild size="lg" className="w-full font-semibold text-lg bg-blue-600 hover:bg-blue-700"><Link href={`/event/${event.id}`}>View Event <Eye className="ml-2 h-5 w-5" /></Link></Button>;
     }
+    
+    // User has unlocked a paid event but not yet joined
     if (status === 'unlocked') {
         if (isLive) {
             // Unlocked and Live -> Join Button (links to register page)
@@ -237,7 +238,7 @@ export default function DashboardPage() {
        return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90"><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
     }
      // Free and upcoming -> Disabled Join button
-     return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90" disabled>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Button>;
+     return <Button asChild size="lg" className="w-full font-semibold text-lg" disabled><Link href={`/event/${event.id}`}>View Event</Link></Button>;
 }
 
 
@@ -397,17 +398,7 @@ export default function DashboardPage() {
             onConfirm={handleExitConfirm}
             onCancel={handleExitCancel}
         />
-        {selectedEventForRegistration && (
-            <RegistrationDialog 
-                open={isRegistrationDialogOpen}
-                onOpenChange={setIsRegistrationDialogOpen}
-                event={selectedEventForRegistration}
-            />
-        )}
       </div>
     </div>
   );
 }
-    
-
-    

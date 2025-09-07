@@ -69,7 +69,7 @@ export async function determineWinners(eventId: string): Promise<LuckyEvent> {
   }
 }
 
-export async function registerForEvent(eventId: string, username: string): Promise<{success: boolean, message: string}> {
+export async function registerForEvent(eventId: string, username: string): Promise<{success: boolean, message: string, eventId?: string}> {
     const eventRef = ref(db, `events/${eventId}`);
     const eventSnapshot = await get(eventRef);
     if (!eventSnapshot.exists()) {
@@ -112,7 +112,7 @@ export async function registerForEvent(eventId: string, username: string): Promi
             }
             const eventUserRef = ref(db, `events/${eventId}/registeredUsers/${userPushId}`);
             await set(eventUserRef, username);
-            return { success: true, message: "Registration successful!" };
+            return { success: true, message: "Registration successful!", eventId: eventId };
         }
 
     } else {
@@ -120,13 +120,13 @@ export async function registerForEvent(eventId: string, username: string): Promi
         if (Date.now() > event.endTime) {
              return { success: false, message: "Registration Failed: Deadline passed." };
         }
-        const userRegistered = Object.values(event.registeredUsers || {}).includes(username);
-        if (userRegistered) {
-            return { success: true, message: "You are already registered for this event." };
+        const isRegistered = !!(event.registeredUsers && Object.values(event.registeredUsers).includes(username));
+        if (isRegistered) {
+            return { success: true, message: "You are already registered for this event.", eventId: eventId };
         }
         const eventUserRef = ref(db, `events/${eventId}/registeredUsers/${userPushId}`);
         await set(eventUserRef, username);
-        return { success: true, message: "Registration successful!" };
+        return { success: true, message: "Registration successful!", eventId: eventId };
     }
 }
 
@@ -231,5 +231,3 @@ export async function submitQuizAnswer(
         return { success: false, message: 'Could not submit your answer.' };
     }
 }
-
-    
