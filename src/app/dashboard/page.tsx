@@ -9,23 +9,26 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent, UserData } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Zap, Loader2 } from 'lucide-react';
+import { Crown, Gift, LogOut, Ticket, History, Eye, User, Box, ArrowRight, Calendar, Clock, Settings, Zap, Loader2, Lock } from 'lucide-react';
 import { AdminAccessDialog } from '@/components/lucky-draw/AdminAccessDialog';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { determineWinners } from '../actions';
 import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
+import { RegistrationDialog } from '@/components/lucky-draw/RegistrationDialog';
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
-  const [userXp, setUserXp] = useState<number | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [events, setEvents] = useState<LuckyEvent[]>([]);
-  const [userEventStatus, setUserEventStatus] = useState<Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'pending'>>({});
+  const [userEventStatus, setUserEventStatus] = useState<Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'unlocked' | 'pending'>>({});
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
   const [isExitConfirmationDialogOpen, setIsExitConfirmationDialogOpen] = useState(false);
+  const [selectedEventForRegistration, setSelectedEventForRegistration] = useState<LuckyEvent | null>(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -51,8 +54,9 @@ export default function DashboardPage() {
     };
   }, [handleBackButton]);
   
-  const updateEvents = useCallback((data: any, currentUsername: string | null) => {
-    if (data && currentUsername) {
+  const updateEvents = useCallback((data: any, currentUserData: UserData | null) => {
+    if (data && currentUserData?.username) {
+      const currentUsername = currentUserData.username;
       const now = Date.now();
       const allEvents: LuckyEvent[] = Object.entries(data).map(([id, event]) => ({
         id,
@@ -70,11 +74,12 @@ export default function DashboardPage() {
       
       setEvents(allEvents);
       
-      const status: Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'pending'> = {};
+      const status: Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'unlocked' | 'pending'> = {};
       allEvents.forEach(event => {
           const userEntry = Object.entries(event.registeredUsers || {}).find(([_, name]) => name === currentUsername);
           const userId = userEntry ? userEntry[0] : null;
           const isRegistered = !!userId;
+          const isUnlocked = !!(event.id && currentUserData.unlockedEvents?.[event.id]);
 
           if (now > event.resultTime && event.winners !== undefined) { // Result time has passed and winners are determined
               const isWinner = !!(userId && event.winners?.includes(userId));
@@ -85,8 +90,10 @@ export default function DashboardPage() {
               }
           } else if (now > event.endTime) { // Event ended, waiting for results
               status[event.id] = 'pending';
-          } else if (isRegistered) { // Event is live or upcoming
+          } else if (isRegistered) { // Event is live or upcoming and user is fully registered
               status[event.id] = 'registered';
+          } else if (isUnlocked) {
+              status[event.id] = 'unlocked';
           }
       });
       setUserEventStatus(status);
@@ -96,29 +103,44 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!username) return;
 
-    // Fetch User XP
     const usersRef = ref(db, 'users');
     const unsubscribeUser = onValue(usersRef, (snapshot) => {
       if (snapshot.exists()) {
         const users = snapshot.val();
-        const userEntry = Object.values(users).find((user: any) => user.username === username) as UserData | undefined;
+        const userEntry = Object.entries(users).find(([id, user]: [string, any]) => user.username === username);
         if (userEntry) {
-          setUserXp(userEntry.xp);
+          setUserData({ user_id: userEntry[0], ...userEntry[1] });
         }
       }
     });
 
     const eventsRef = ref(db, 'events');
     const unsubscribeEvents = onValue(eventsRef, (snapshot) => {
-      updateEvents(snapshot.val(), username);
+      // We need userData to be available to correctly calculate event statuses
+      onValue(usersRef, (userSnapshot) => {
+          if (userSnapshot.exists()) {
+              const users = userSnapshot.val();
+              const userEntry = Object.entries(users).find(([id, user]: [string, any]) => user.username === username);
+              if (userEntry) {
+                 updateEvents(snapshot.val(), { user_id: userEntry[0], ...userEntry[1] });
+              }
+          }
+      }, { onlyOnce: true });
     });
     
-    // Set up an interval to refresh the event state to check for live events
     const interval = setInterval(() => {
       onValue(eventsRef, (snapshot) => {
-         updateEvents(snapshot.val(), username);
+         onValue(usersRef, (userSnapshot) => {
+            if (userSnapshot.exists()) {
+                const users = userSnapshot.val();
+                const userEntry = Object.entries(users).find(([id, user]: [string, any]) => user.username === username);
+                if (userEntry) {
+                   updateEvents(snapshot.val(), { user_id: userEntry[0], ...userEntry[1] });
+                }
+            }
+         }, { onlyOnce: true });
       }, { onlyOnce: true });
-    }, 1000);
+    }, 5000);
 
     return () => {
       unsubscribeUser();
@@ -129,7 +151,6 @@ export default function DashboardPage() {
   
   const handleAdminAccessClick = () => {
     const now = Date.now();
-    // If clicks are more than 1 second apart, reset the counter.
     if (now - lastClickTime > 1000) {
       setAdminClickCount(1);
     } else {
@@ -137,7 +158,7 @@ export default function DashboardPage() {
       setAdminClickCount(newClickCount);
       if (newClickCount >= 3) {
         setIsAdminDialogOpen(true);
-        setAdminClickCount(0); // Reset after opening
+        setAdminClickCount(0);
       }
     }
     setLastClickTime(now);
@@ -154,7 +175,6 @@ export default function DashboardPage() {
   };
 
   const handleExitCancel = () => {
-    // We need to push the state again to re-enable the popstate listener
     history.pushState(null, '', window.location.href);
     setIsExitConfirmationDialogOpen(false);
   };
@@ -170,6 +190,30 @@ export default function DashboardPage() {
     }
   }
 
+  const renderEventButton = (event: LuckyEvent) => {
+    const status = userEventStatus[event.id];
+    const isLive = now >= event.startTime && now <= event.endTime;
+
+    if (status === 'registered') {
+        return <Button asChild size="lg" className="w-full font-semibold text-lg bg-green-600 hover:bg-green-700 pointer-events-none"><Link href={`/event/${event.id}`}>Registered <CheckCircle className="ml-2 h-5 w-5" /></Link></Button>;
+    }
+    if (status === 'unlocked') {
+        if (isLive) {
+            return <Button onClick={() => setSelectedEventForRegistration(event)} size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90 animate-pulse">Join Event <ArrowRight className="ml-2 h-5 w-5" /></Button>
+        }
+        return <Button asChild size="lg" className="w-full font-semibold text-lg bg-blue-600 hover:bg-blue-700"><Link href={`/event/${event.id}`}>View Event <Eye className="ml-2 h-5 w-5" /></Link></Button>;
+    }
+    
+    // Default case: not unlocked, not registered
+    if (event.requiredXp && event.requiredXp > 0) {
+        return <Button onClick={() => setSelectedEventForRegistration(event)} size="lg" className="w-full font-semibold text-lg bg-gray-600 hover:bg-gray-700"><Lock className="mr-2 h-5 w-5"/>Unlock Event</Button>;
+    }
+
+    // Free event
+    return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90"><Link href={`/event/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
+}
+
+
   const now = Date.now();
   const upcomingEvents = events.filter(e => e.endTime > now);
   const pastEvents = events.filter(e => e.endTime <= now).sort((a, b) => b.resultTime - a.resultTime);
@@ -184,10 +228,10 @@ export default function DashboardPage() {
           <div className="flex items-center gap-1 sm:gap-2">
               <div className="flex items-center gap-2 text-white bg-black/30 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
                   <Zap className="h-4 w-4 text-blue-400"/>
-                  {userXp === null ? (
+                  {userData?.xp === null ? (
                      <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <span className="font-bold text-base">{userXp}</span>
+                    <span className="font-bold text-base">{userData?.xp ?? 0}</span>
                   )}
               </div>
               <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-1.5">
@@ -211,12 +255,10 @@ export default function DashboardPage() {
                     </h2>
                     <div className="grid gap-6 md:grid-cols-2">
                     {upcomingEvents.map(event => (
-                      <Link href={`/event/${event.id}`} key={event.id} className="group relative">
-                        {event.requiredXp && event.requiredXp > 0 && (
-                             <Badge variant="outline" className={cn("absolute top-2 left-2 text-yellow-300 border-yellow-300/50 bg-black/50 flex items-center gap-1.5",
-                             now < event.startTime ? "text-yellow-300 border-yellow-300/50" : "text-blue-300 border-blue-300/50"
-                             )}>
-                                <Zap className="h-3 w-3"/>{event.requiredXp}
+                      <div key={event.id} className="group relative">
+                        {event.requiredXp && event.requiredXp > 0 && userEventStatus[event.id] !== 'registered' && userEventStatus[event.id] !== 'unlocked' && (
+                             <Badge variant="outline" className="absolute top-2 left-2 text-yellow-300 border-yellow-300/50 bg-black/50 flex items-center gap-1.5">
+                                <Zap className="h-3 w-3"/>{event.requiredXp} XP
                             </Badge>
                         )}
                         <Card className={cn(
@@ -244,15 +286,10 @@ export default function DashboardPage() {
                             )}
                           </CardContent>
                           <div className="p-4 pt-0">
-                                {now >= event.startTime && now <= event.endTime && (
-                                    <Button size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">
-                                        <Box className="mr-2 h-5 w-5" />
-                                        Registered <ArrowRight className="ml-2 h-5 w-5" />
-                                    </Button>
-                                )}
+                            {renderEventButton(event)}
                           </div>
                         </Card>
-                      </Link>
+                      </div>
                     ))}
                     </div>
                 </>
@@ -289,7 +326,7 @@ export default function DashboardPage() {
                       <CardTitle className="flex justify-between items-center">
                         <span>{event.name}</span>
                         <div className="flex items-center gap-2">
-                            {event.requiredXp && event.requiredXp > 0 && (
+                           {event.requiredXp && event.requiredXp > 0 && (
                                 <Badge variant="outline" className="text-yellow-300 border-yellow-300/50 bg-black/50 flex items-center gap-1.5">
                                     <Zap className="h-3 w-3"/>{event.requiredXp}
                                 </Badge>
@@ -333,9 +370,16 @@ export default function DashboardPage() {
             onConfirm={handleExitConfirm}
             onCancel={handleExitCancel}
         />
+         {selectedEventForRegistration && username && userData && (
+            <RegistrationDialog 
+                open={!!selectedEventForRegistration}
+                onOpenChange={() => setSelectedEventForRegistration(null)}
+                event={selectedEventForRegistration}
+                username={username}
+                user={userData}
+            />
+        )}
       </div>
     </div>
   );
 }
-
-    

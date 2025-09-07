@@ -1,53 +1,46 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
-const successLines = [
+const TOTAL_DURATION = 4000; // 4 seconds
+
+const baseLines = [
   'Initializing registration sequence...',
   'Connecting to event server... [OK]',
   'Authenticating user credentials...',
   'Encrypting session... [DONE]',
   'Submitting registration ticket...',
   'Awaiting confirmation...',
-  'Server response: 200 OK',
-  'Registration successful!',
 ];
 
-const failureLines = [
-    'Initializing registration sequence...',
-    'Connecting to event server... [OK]',
-    'Authenticating user credentials...',
-    'Encrypting session... [DONE]',
-    'Submitting registration ticket...',
-    'Awaiting confirmation...',
-    'Server response: 400 Bad Request',
-    'Registration Failed: Deadline passed.',
-];
-
-const TOTAL_DURATION = 4000; // 4 seconds
-
-export function TerminalAnimation({ onComplete, success = true }: { onComplete: () => void, success?: boolean }) {
+export function TerminalAnimation({ onComplete, success, message }: { onComplete: () => void, success: boolean, message: string }) {
   const [visibleLines, setVisibleLines] = useState<string[]>([]);
-  const lines = success ? successLines : failureLines;
   
+  const finalLines = [
+      ...baseLines,
+      `Server response: ${success ? '200 OK' : '400 Bad Request'}`,
+      message
+  ];
+
   useEffect(() => {
     let i = 0;
-    const intervalDelay = TOTAL_DURATION / lines.length;
+    const intervalDelay = TOTAL_DURATION / finalLines.length;
     const interval = setInterval(() => {
-      if (i < lines.length) {
-        setVisibleLines(prev => [...prev, lines[i]]);
+      if (i < finalLines.length) {
+        setVisibleLines(prev => [...prev, finalLines[i]]);
         i++;
       } else {
         clearInterval(interval);
-        setTimeout(onComplete, 500);
+        setTimeout(onComplete, 500); // Wait a bit before closing
       }
     }, intervalDelay);
 
     return () => clearInterval(interval);
-  }, [onComplete, lines]);
+  }, [onComplete]);
 
-  const isErrorLine = (line: string) => !success && line && (line.includes('Failed') || line.includes('400'));
+  const isErrorLine = (line: string) => !success && (line.includes('Failed') || line.includes('400'));
 
   return (
     <div className={cn("bg-gray-900 font-mono text-sm p-4 rounded-lg h-64 overflow-y-auto", success ? "text-green-400" : "text-red-400")}>

@@ -47,5 +47,5 @@ export interface UserData {
     username: string;
     xp: number;
     pendingXpSpend?: number;
-    // other user data can go here
+    unlockedEvents?: Record<string, boolean>; // eventId: true
 }

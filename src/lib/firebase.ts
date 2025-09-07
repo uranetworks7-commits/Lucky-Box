@@ -60,24 +60,21 @@ export const getMessagingToken = async () => {
 
 export const createUserIfNotExists = async (username: string): Promise<string> => {
     const usersRef = ref(db, 'users');
-    const snapshot = await get(usersRef);
+    const userQuery = query(usersRef, orderByChild('username'), equalTo(username));
+    const snapshot = await get(userQuery);
 
     if (snapshot.exists()) {
-        const users = snapshot.val();
-        const existingUserEntry = Object.entries(users).find(([id, user]) => (user as UserData).username === username);
-
-        if (existingUserEntry) {
-            // User exists, return their key (ID)
-            return existingUserEntry[0];
-        }
+        const userId = Object.keys(snapshot.val())[0];
+        return userId;
     }
     
     // User does not exist, create them
     const newUserRef = push(usersRef);
-    const newUser: UserData = {
-        user_id: newUserRef.key!,
+    const newUser: Omit<UserData, 'user_id'> = {
         username: username,
         xp: 50, // Set default XP to 50 for new users
+        pendingXpSpend: 0,
+        unlockedEvents: {}
     };
     await set(newUserRef, newUser);
     return newUserRef.key!;

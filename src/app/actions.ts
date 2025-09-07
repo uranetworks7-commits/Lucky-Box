@@ -77,10 +77,6 @@ export async function registerForEvent(eventId: string, username: string): Promi
     }
     const event: LuckyEvent = eventSnapshot.val();
 
-    if (Date.now() > event.endTime) {
-        return { success: false, message: "Registration for this event has ended." };
-    }
-
     const userPushId = await createUserIfNotExists(username);
     const userRef = ref(db, `users/${userPushId}`);
     const userSnapshot = await get(userRef);
@@ -88,27 +84,49 @@ export async function registerForEvent(eventId: string, username: string): Promi
         return { success: false, message: "User not found." };
     }
     const userData: UserData = userSnapshot.val();
-
-    // Check if already registered
-    const registeredUsers = event.registeredUsers || {};
-    if (Object.values(registeredUsers).includes(username)) {
-        return { success: true, message: "You are already registered for this event." };
-    }
-
+    
+    // Check if event is free or paid
     const requiredXp = event.requiredXp || 0;
     if (requiredXp > 0) {
-        if (userData.xp < requiredXp) {
-            return { success: false, message: `You need at least ${requiredXp} XP to unlock this event. You have ${userData.xp} XP.`};
+        // This is a paid event, handle unlock/join logic
+        const isUnlocked = userData.unlockedEvents?.[eventId];
+        
+        if (!isUnlocked) {
+            // UNLOCK action
+            if (userData.xp < requiredXp) {
+                return { success: false, message: `You need at least ${requiredXp} XP to unlock this event. You have ${userData.xp} XP.`};
+            }
+            const currentPending = userData.pendingXpSpend || 0;
+            const updates: Record<string, any> = {};
+            updates[`/users/${userPushId}/pendingXpSpend`] = currentPending + requiredXp;
+            updates[`/users/${userPushId}/unlockedEvents/${eventId}`] = true;
+            await update(ref(db), updates);
+            return { success: true, message: "Successfully Unlocked Event! Go to settings to pay." };
+        } else {
+            // JOIN action for an already unlocked event
+            if (Date.now() > event.endTime) {
+                return { success: false, message: "Registration Failed: Deadline passed." };
+            }
+            if (userData.pendingXpSpend && userData.pendingXpSpend > 0) {
+                return { success: false, message: "Registration Failed: Please pay your pending XP in Settings first." };
+            }
+            const eventUserRef = push(ref(db, `events/${eventId}/registeredUsers`));
+            await set(eventUserRef, username);
+            return { success: true, message: "Registration successful!" };
         }
-        const currentPending = userData.pendingXpSpend || 0;
-        await update(userRef, { pendingXpSpend: currentPending + requiredXp });
-    }
-    
-    // Add user to the event's registered users list
-    const eventUserRef = push(ref(db, `events/${eventId}/registeredUsers`));
-    await set(eventUserRef, username);
 
-    return { success: true, message: requiredXp > 0 ? 'Successfully Unlocked Event! Go to settings to pay.' : 'Successfully registered for the event!' };
+    } else {
+        // This is a free event, register directly
+        if (Date.now() > event.endTime) {
+             return { success: false, message: "Registration Failed: Deadline passed." };
+        }
+        if (Object.values(event.registeredUsers || {}).includes(username)) {
+            return { success: true, message: "You are already registered for this event." };
+        }
+        const eventUserRef = push(ref(db, `events/${eventId}/registeredUsers`));
+        await set(eventUserRef, username);
+        return { success: true, message: "Registration successful!" };
+    }
 }
 
 export async function payPendingXp(username: string): Promise<{success: boolean, message: string}> {
@@ -119,12 +137,9 @@ export async function payPendingXp(username: string): Promise<{success: boolean,
         if (user) {
             const pendingSpend = user.pendingXpSpend || 0;
             if (pendingSpend === 0) {
-                // No need to do anything if there's no pending spend
                 return user;
             }
             if (user.xp < pendingSpend) {
-                // This case should ideally be prevented by client-side checks, but as a safeguard:
-                // We don't complete the transaction by returning undefined.
                 return;
             }
             user.xp -= pendingSpend;

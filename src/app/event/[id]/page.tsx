@@ -8,13 +8,13 @@ import { db } from '@/lib/firebase';
 import type { LuckyEvent } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TerminalAnimation } from '@/components/lucky-draw/TerminalAnimation';
 import { Countdown } from '@/components/lucky-draw/Countdown';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { CheckCircle, Clock, Loader2, Trophy, XCircle, ArrowLeft, Gift, Box, Sparkles, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { registerForEvent } from '@/app/actions';
+import { RegistrationDialog } from '@/components/lucky-draw/RegistrationDialog';
 
 type EventStatus = 'loading' | 'upcoming' | 'live' | 'ended' | 'results' | 'not_found';
 type RegistrationStatus = 'unregistered' | 'registering' | 'registered';
@@ -30,6 +30,7 @@ export default function EventPage() {
   const [eventStatus, setEventStatus] = useState<EventStatus>('loading');
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus>('unregistered');
   const [showResultsLink, setShowResultsLink] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -77,19 +78,13 @@ export default function EventPage() {
   }, [eventId, username, updateStatus]);
   
   const handleRegister = async () => {
+    // For free events, this page handles registration directly.
     if (!username || !event || registrationStatus !== 'unregistered') return;
     
-    setRegistrationStatus('registering');
-    
-    const result = await registerForEvent(eventId, username);
+    // Paid events are handled on the dashboard, this button shouldn't even be shown.
+    if (event.requiredXp && event.requiredXp > 0) return;
 
-    if (result.success) {
-        toast({ title: 'Success!', description: result.message });
-        // The onValue listener will update the registration status to 'registered'
-    } else {
-        toast({ title: 'Failed', description: result.message, variant: 'destructive' });
-        setRegistrationStatus('unregistered');
-    }
+    setIsRegistering(true);
   };
 
   const onCountdownEnd = () => {
@@ -136,18 +131,8 @@ export default function EventPage() {
           <Sparkles className="h-16 w-16 text-red-400 mx-auto animate-pulse" />
           <h3 className="text-3xl font-bold text-white">The Event is LIVE!</h3>
           <p className="text-red-200/90">Your chance to win is now. Don't miss out!</p>
-          {event.requiredXp && event.requiredXp > 0 ? (
-            <div className="flex justify-center items-center gap-2 text-sm text-blue-300 bg-black/30 py-1 px-3 rounded-full">
-                <Zap className="h-4 w-4" />
-                <span>Requires {event.requiredXp} XP</span>
-            </div>
-           ) : (
-            <div className="flex justify-center items-center gap-2 text-sm text-green-300 bg-black/30 py-1 px-3 rounded-full">
-                <span>Free to Join</span>
-            </div>
-           )}
           <Button onClick={handleRegister} size="lg" className="w-full bg-red-600 hover:bg-red-700 text-lg font-bold animate-pulse" disabled={registrationStatus !== 'unregistered'}>
-              {registrationStatus === 'registering' ? <><Loader2 className="mr-2 h-6 w-6 animate-spin"/> Registering...</> : <><Box className="mr-2 h-6 w-6"/> Register</>}
+            <Box className="mr-2 h-6 w-6"/> Register
           </Button>
         </div>
       );
@@ -200,6 +185,15 @@ export default function EventPage() {
             {renderContent()}
         </CardContent>
       </Card>
+      {isRegistering && event && username && (
+         <RegistrationDialog 
+            open={isRegistering}
+            onOpenChange={setIsRegistering}
+            event={event}
+            username={username}
+            user={null} // For free events, user data isn't needed for checks here
+         />
+      )}
     </main>
   );
 }
