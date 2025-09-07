@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { determineWinners, registerForEvent } from '../actions';
 import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
 import { useToast } from '@/hooks/use-toast';
+import { RegistrationDialog } from '@/components/lucky-draw/RegistrationDialog';
 
 
 export default function DashboardPage() {
@@ -77,13 +78,12 @@ export default function DashboardPage() {
       
       const status: Record<string, 'won' | 'lost' | 'missed' | 'registered' | 'unlocked' | 'pending'> = {};
       allEvents.forEach(event => {
-          const isRegistered = !!(event.registeredUsers && Object.values(event.registeredUsers).includes(currentUsername));
+          const userPushId = Object.keys(event.registeredUsers || {}).find(key => event.registeredUsers?.[key] === currentUsername);
+          const isRegistered = !!userPushId;
           const isUnlocked = !!(event.id && currentUserData.unlockedEvents?.[event.id]);
 
           if (now > event.resultTime && event.winners !== undefined) { // Result time has passed and winners are determined
-              const userEntry = Object.entries(event.registeredUsers || {}).find(([_, name]) => name === currentUsername);
-              const userId = userEntry ? userEntry[0] : null;
-              const isWinner = !!(userId && event.winners?.includes(userId));
+              const isWinner = !!(userPushId && event.winners?.includes(userPushId));
               if (isRegistered) {
                   status[event.id] = isWinner ? 'won' : 'lost';
               } else {
@@ -211,12 +211,10 @@ export default function DashboardPage() {
     const now = Date.now();
     const isLive = now >= event.startTime && now <= event.endTime;
 
-    // User is fully registered for the event
     if (status === 'registered') {
         return <Button asChild size="lg" className="w-full font-semibold text-lg bg-blue-600 hover:bg-blue-700"><Link href={`/event/${event.id}`}>View Event <Eye className="ml-2 h-5 w-5" /></Link></Button>;
     }
     
-    // User has unlocked a paid event but not yet joined
     if (status === 'unlocked') {
         if (isLive) {
             // Unlocked and Live -> Join Button (links to register page)
@@ -228,17 +226,14 @@ export default function DashboardPage() {
     
     // Default case: not unlocked, not registered
     if (event.requiredXp && event.requiredXp > 0) {
-         // Paid event, not unlocked -> Unlock Button
         return <Button onClick={() => handleUnlockEvent(event)} size="lg" className="w-full font-semibold text-lg bg-gray-600 hover:bg-gray-700"><Lock className="mr-2 h-5 w-5"/>Unlock Event</Button>;
     }
 
-    // Free event
     if (isLive) {
-       // Free and Live -> Join Button (links to register page)
        return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90"><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
     }
-     // Free and upcoming -> Disabled Join button
-     return <Button asChild size="lg" className="w-full font-semibold text-lg" disabled><Link href={`/event/${event.id}`}>View Event</Link></Button>;
+
+    return <Button asChild size="lg" className="w-full font-semibold text-lg" disabled><Link href={`/event/${event.id}`}>View Event</Link></Button>;
 }
 
 
@@ -304,14 +299,14 @@ export default function DashboardPage() {
                             {now < event.startTime ? (
                               <div className="space-y-2">
                                 <Badge variant="outline" className="border-accent text-accent text-lg py-1 px-4">Upcoming</Badge>
-                                <div className="flex justify-center items-center gap-4 text-lg text-white/80">
-                                    <div className="flex items-center gap-2"><Calendar className="h-5 w-5"/> {format(new Date(event.startTime), 'MMM d, yyyy')}</div>
-                                    <div className="flex items-center gap-2"><Clock className="h-5 w-5"/> {format(new Date(event.startTime), 'p')}</div>
-                                </div>
                               </div>
                             ) : (
                                <Badge className="bg-red-500 hover:bg-red-600 animate-pulse text-base py-1 px-4">Live Now!</Badge>
                             )}
+                             <div className="flex justify-center items-center gap-4 text-lg text-white/80">
+                                <div className="flex items-center gap-2 text-sm"><Calendar className="h-4 w-4"/> {format(new Date(event.startTime), 'MMM d, p')}</div>
+                                <div className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4"/> {format(new Date(event.endTime), 'p')}</div>
+                            </div>
                           </CardContent>
                           <div className="p-4 pt-0">
                             {renderEventButton(event)}
@@ -402,3 +397,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
