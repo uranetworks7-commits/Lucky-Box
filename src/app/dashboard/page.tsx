@@ -218,21 +218,26 @@ export default function DashboardPage() {
     }
     if (status === 'unlocked') {
         if (isLive) {
-            return <Button onClick={() => handleJoinClick(event)} size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90 animate-pulse">Join Event <ArrowRight className="ml-2 h-5 w-5" /></Button>
+            // Unlocked and Live -> Join Button (links to register page)
+            return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90 animate-pulse"><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
         }
+        // Unlocked and Upcoming -> View Button
         return <Button asChild size="lg" className="w-full font-semibold text-lg bg-blue-600 hover:bg-blue-700"><Link href={`/event/${event.id}`}>View Event <Eye className="ml-2 h-5 w-5" /></Link></Button>;
     }
     
     // Default case: not unlocked, not registered
     if (event.requiredXp && event.requiredXp > 0) {
+         // Paid event, not unlocked -> Unlock Button
         return <Button onClick={() => handleUnlockEvent(event)} size="lg" className="w-full font-semibold text-lg bg-gray-600 hover:bg-gray-700"><Lock className="mr-2 h-5 w-5"/>Unlock Event</Button>;
     }
 
     // Free event
     if (isLive) {
-       return <Button onClick={() => handleJoinClick(event)} size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">Join Event <ArrowRight className="ml-2 h-5 w-5" /></Button>;
+       // Free and Live -> Join Button (links to register page)
+       return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90"><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
     }
-     return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90" disabled><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
+     // Free and upcoming -> Disabled Join button
+     return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90" disabled>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Button>;
 }
 
 
@@ -403,5 +408,6 @@ export default function DashboardPage() {
     </div>
   );
 }
+    
 
     

@@ -120,7 +120,8 @@ export async function registerForEvent(eventId: string, username: string): Promi
         if (Date.now() > event.endTime) {
              return { success: false, message: "Registration Failed: Deadline passed." };
         }
-        if (Object.values(event.registeredUsers || {}).includes(username)) {
+        const userRegistered = Object.values(event.registeredUsers || {}).includes(username);
+        if (userRegistered) {
             return { success: true, message: "You are already registered for this event." };
         }
         const eventUserRef = ref(db, `events/${eventId}/registeredUsers/${userPushId}`);
@@ -137,9 +138,11 @@ export async function payPendingXp(username: string): Promise<{success: boolean,
         if (user) {
             const pendingSpend = user.pendingXpSpend || 0;
             if (pendingSpend === 0) {
-                return user;
+                // To prevent transaction from running unnecessarily
+                return;
             }
             if (user.xp < pendingSpend) {
+                // Abort transaction
                 return;
             }
             user.xp -= pendingSpend;
@@ -148,9 +151,15 @@ export async function payPendingXp(username: string): Promise<{success: boolean,
         return user;
     }).then((result) => {
         if (result.committed) {
-            return { success: true, message: 'Payment successful! Your XP balance has been updated.' };
+            const userAfter = result.snapshot.val();
+             if (userAfter && userAfter.pendingXpSpend === 0) {
+                return { success: true, message: 'Payment successful! Your XP balance has been updated.' };
+             }
+             // This can happen if the transaction was aborted due to insufficient XP
+             return { success: false, message: 'Payment failed. You may not have enough XP.' };
         } else {
-            return { success: false, message: 'Payment failed. You may not have enough XP.' };
+             // Transaction aborted or failed for other reasons
+            return { success: false, message: 'Payment failed. Please check your XP balance and try again.' };
         }
     }).catch((error) => {
         console.error("Transaction failed: ", error);
@@ -194,7 +203,8 @@ export async function submitQuizAnswer(
         }
         
         // Check if user has already submitted
-        if (quiz.submissions && Object.values(quiz.submissions).some(s => s.username === username)) {
+        const hasSubmitted = quiz.submissions && Object.values(quiz.submissions).some(s => s.username === username);
+        if (hasSubmitted) {
             return { success: false, message: 'You have already submitted an answer for this activity.' };
         }
 
@@ -221,3 +231,5 @@ export async function submitQuizAnswer(
         return { success: false, message: 'Could not submit your answer.' };
     }
 }
+
+    

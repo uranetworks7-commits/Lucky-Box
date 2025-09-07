@@ -83,11 +83,13 @@ export default function RegisterPage() {
     <main className="flex items-center justify-center min-h-screen bg-black text-white">
       <div className="text-center space-y-8">
         <h1 className="text-4xl font-bold">Register for {event.name}</h1>
-        <Button onClick={handleRegister} size="lg" className="text-xl p-8 bg-accent hover:bg-accent/90">
-            <Box className="mr-4 h-8 w-8" />
-            Register Now
+        <Button onClick={handleRegister} size="lg" className="text-xl p-8 bg-accent hover:bg-accent/90" disabled={isRegistering}>
+            {isRegistering ? <Loader2 className="mr-4 h-8 w-8 animate-spin" /> : <Box className="mr-4 h-8 w-8" />}
+            {isRegistering ? 'Registering...' : 'Register Now'}
         </Button>
       </div>
     </main>
   );
 }
+
+    

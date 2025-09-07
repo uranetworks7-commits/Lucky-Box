@@ -59,9 +59,8 @@ export default function EventPage() {
         updateStatus(eventData);
         
         if (username) {
-            const userEntry = Object.entries(eventData.registeredUsers || {}).find(([_, name]) => name === username);
-            const isRegistered = !!userEntry;
-            if (isRegistered) {
+            const userIsRegistered = Object.values(eventData.registeredUsers || {}).includes(username);
+            if (userIsRegistered) {
                 setRegistrationStatus('registered');
             } else {
                 setRegistrationStatus('unregistered');
@@ -173,3 +172,5 @@ export default function EventPage() {
     </main>
   );
 }
+
+    
