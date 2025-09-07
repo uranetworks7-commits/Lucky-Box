@@ -97,26 +97,26 @@ export default function AdminDashboard() {
   const getActivityStatus = (item: {startTime: number, endTime: number}) => {
       const now = Date.now();
       if (now > item.endTime) {
-          return <Badge variant="destructive">Ended</Badge>;
+          return <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Ended</Badge>;
       }
       if (now < item.startTime) {
-          return <Badge variant="outline">Upcoming</Badge>;
+          return <Badge variant="outline" className="text-[10px] px-1.5 py-0">Upcoming</Badge>;
       }
-      return <Badge className="bg-green-500 hover:bg-green-600">Live</Badge>
+      return <Badge className="bg-green-500 hover:bg-green-600 text-[10px] px-1.5 py-0">Live</Badge>
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <div className="lg:col-span-2 space-y-4">
+    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+      <div className="lg:col-span-2 space-y-2">
         <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Manage Activities</h2>
+            <h2 className="text-xs font-semibold">Manage Activities</h2>
             <div className="flex items-center gap-1">
-                <Button asChild size="sm" className="h-7 px-2 text-xs">
+                <Button asChild size="sm" className="h-6 px-1.5 text-[10px]">
                   <Link href="/admin/create">
                     <PlusCircle className="mr-1 h-3 w-3" /> Create Event
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="sm" className="h-7 px-2 text-xs">
+                <Button asChild variant="outline" size="sm" className="h-6 px-1.5 text-[10px]">
                   <Link href="/admin/create-quiz">
                     <HelpCircle className="mr-1 h-3 w-3" /> Create Activity
                   </Link>
@@ -124,38 +124,38 @@ export default function AdminDashboard() {
             </div>
         </div>
         <Card>
-            <CardHeader className="p-2">
-            <CardTitle className="text-sm font-semibold">Lucky Box Events</CardTitle>
+            <CardHeader className="p-1.5">
+            <CardTitle className="text-xs font-semibold">Lucky Box Events</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
             <Table>
                 <TableHeader>
                 <TableRow>
-                    <TableHead className="h-8 px-2 text-xs">Event Name</TableHead>
-                    <TableHead className="h-8 px-2 text-xs">Date</TableHead>
-                    <TableHead className="h-8 px-2 text-xs">Status</TableHead>
-                    <TableHead className="text-right h-8 px-2 text-xs">Actions</TableHead>
+                    <TableHead className="h-6 px-1.5 text-[10px]">Event Name</TableHead>
+                    <TableHead className="h-6 px-1.5 text-[10px]">Date</TableHead>
+                    <TableHead className="h-6 px-1.5 text-[10px]">Status</TableHead>
+                    <TableHead className="text-right h-6 px-1.5 text-[10px]">Actions</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
                 {loading ? (
                     <TableRow>
-                    <TableCell colSpan={4} className="text-center px-2 py-1 text-xs">Loading events...</TableCell>
+                    <TableCell colSpan={4} className="text-center px-1.5 py-0.5 text-[10px]">Loading events...</TableCell>
                     </TableRow>
                 ) : events.length > 0 ? (
                     events.map((event) => (
-                    <TableRow key={event.id}>
-                        <TableCell className="font-medium px-2 py-1 text-xs">
+                    <TableRow key={event.id} className="h-8">
+                        <TableCell className="font-medium px-1.5 py-0.5 text-[10px]">
                         <span className={cn(event.isHighlighted && 'animate-golden-glow text-accent')}>
                             {event.name}
                         </span>
                         </TableCell>
-                        <TableCell className="px-2 py-1 text-xs">{format(new Date(event.startTime), 'MMM d, yyyy')}</TableCell>
-                        <TableCell className="px-2 py-1 text-xs">{getActivityStatus(event)}</TableCell>
-                        <TableCell className="text-right px-2 py-1 text-xs">
+                        <TableCell className="px-1.5 py-0.5 text-[10px]">{format(new Date(event.startTime), 'MMM d, yy')}</TableCell>
+                        <TableCell className="px-1.5 py-0.5 text-[10px]">{getActivityStatus(event)}</TableCell>
+                        <TableCell className="text-right px-1.5 py-0.5 text-[10px]">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-6 w-6">
+                                <Button variant="ghost" size="icon" className="h-5 w-5">
                                 <MoreHorizontal className="h-3 w-3" />
                                 <span className="sr-only">Actions</span>
                                 </Button>
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
                     ))
                 ) : (
                     <TableRow>
-                    <TableCell colSpan={4} className="text-center px-2 py-1 text-xs">No events found. Create one to get started!</TableCell>
+                    <TableCell colSpan={4} className="text-center px-1.5 py-0.5 text-[10px]">No events found. Create one to get started!</TableCell>
                     </TableRow>
                 )}
                 </TableBody>
@@ -190,36 +190,36 @@ export default function AdminDashboard() {
         </Card>
       
         <Card>
-            <CardHeader className="p-2">
-            <CardTitle className="text-sm font-semibold">Quizzes & Polls</CardTitle>
+            <CardHeader className="p-1.5">
+            <CardTitle className="text-xs font-semibold">Quizzes & Polls</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
             <Table>
                 <TableHeader>
                 <TableRow>
-                    <TableHead className="h-8 px-2 text-xs">Title</TableHead>
-                    <TableHead className="h-8 px-2 text-xs"># Questions</TableHead>
-                    <TableHead className="h-8 px-2 text-xs">XP</TableHead>
-                    <TableHead className="h-8 px-2 text-xs">Status</TableHead>
-                    <TableHead className="text-right h-8 px-2 text-xs">Actions</TableHead>
+                    <TableHead className="h-6 px-1.5 text-[10px]">Title</TableHead>
+                    <TableHead className="h-6 px-1.5 text-[10px]"># Qs</TableHead>
+                    <TableHead className="h-6 px-1.5 text-[10px]">XP</TableHead>
+                    <TableHead className="h-6 px-1.5 text-[10px]">Status</TableHead>
+                    <TableHead className="text-right h-6 px-1.5 text-[10px]">Actions</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
                 {loading ? (
                     <TableRow>
-                    <TableCell colSpan={5} className="text-center px-2 py-1 text-xs">Loading activities...</TableCell>
+                    <TableCell colSpan={5} className="text-center px-1.5 py-0.5 text-[10px]">Loading activities...</TableCell>
                     </TableRow>
                 ) : quizzes.length > 0 ? (
                     quizzes.map((quiz) => (
-                    <TableRow key={quiz.id}>
-                        <TableCell className="font-medium px-2 py-1 text-xs">{quiz.title}</TableCell>
-                        <TableCell className="px-2 py-1 text-xs">{quiz.questions?.length || 0}</TableCell>
-                        <TableCell className="px-2 py-1 text-xs">{quiz.xp}</TableCell>
-                        <TableCell className="px-2 py-1 text-xs">{getActivityStatus(quiz)}</TableCell>
-                        <TableCell className="text-right px-2 py-1 text-xs">
+                    <TableRow key={quiz.id} className="h-8">
+                        <TableCell className="font-medium px-1.5 py-0.5 text-[10px]">{quiz.title}</TableCell>
+                        <TableCell className="px-1.5 py-0.5 text-[10px]">{quiz.questions?.length || 0}</TableCell>
+                        <TableCell className="px-1.5 py-0.5 text-[10px]">{quiz.xp}</TableCell>
+                        <TableCell className="px-1.5 py-0.5 text-[10px]">{getActivityStatus(quiz)}</TableCell>
+                        <TableCell className="text-right px-1.5 py-0.5 text-[10px]">
                             <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-6 w-6">
+                                <Button variant="ghost" size="icon" className="h-5 w-5">
                                 <MoreHorizontal className="h-3 w-3" />
                                 <span className="sr-only">Actions</span>
                                 </Button>
@@ -245,7 +245,7 @@ export default function AdminDashboard() {
                     ))
                 ) : (
                     <TableRow>
-                    <TableCell colSpan={5} className="text-center px-2 py-1 text-xs">No activities found. Create one to get started!</TableCell>
+                    <TableCell colSpan={5} className="text-center px-1.5 py-0.5 text-[10px]">No activities found. Create one to get started!</TableCell>
                     </TableRow>
                 )}
                 </TableBody>
@@ -254,37 +254,37 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold">User Management</h2>
+      <div className="space-y-2">
+        <h2 className="text-xs font-semibold">User Management</h2>
         <Card>
-          <CardHeader className="p-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2"><Users /> All Users</CardTitle>
+          <CardHeader className="p-1.5">
+            <CardTitle className="text-xs font-semibold flex items-center gap-2"><Users className="h-3 w-3"/> All Users</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="h-8 px-2 text-xs">Username</TableHead>
-                        <TableHead className="h-8 px-2 text-xs text-right">XP Balance</TableHead>
+                        <TableHead className="h-6 px-1.5 text-[10px]">Username</TableHead>
+                        <TableHead className="h-6 px-1.5 text-[10px] text-right">XP Balance</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {loading ? (
-                         <TableRow><TableCell colSpan={2} className="text-center px-2 py-1 text-xs">Loading users...</TableCell></TableRow>
+                         <TableRow><TableCell colSpan={2} className="text-center px-1.5 py-0.5 text-[10px]">Loading users...</TableCell></TableRow>
                     ) : users.length > 0 ? (
                         users.map((user) => (
-                            <TableRow key={user.user_id}>
-                                <TableCell className="font-medium px-2 py-1 text-xs">{user.username}</TableCell>
-                                <TableCell className="px-2 py-1 text-xs text-right">
+                            <TableRow key={user.user_id} className="h-8">
+                                <TableCell className="font-medium px-1.5 py-0.5 text-[10px]">{user.username}</TableCell>
+                                <TableCell className="px-1.5 py-0.5 text-[10px] text-right">
                                     <div className="flex items-center justify-end gap-1 font-bold text-blue-400">
-                                        <Zap className="h-4 w-4"/>
+                                        <Zap className="h-3 w-3"/>
                                         <span>{user.xp}</span>
                                     </div>
                                 </TableCell>
                             </TableRow>
                         ))
                     ) : (
-                         <TableRow><TableCell colSpan={2} className="text-center px-2 py-1 text-xs">No users found.</TableCell></TableRow>
+                         <TableRow><TableCell colSpan={2} className="text-center px-1.5 py-0.5 text-[10px]">No users found.</TableCell></TableRow>
                     )}
                 </TableBody>
             </Table>
@@ -309,3 +309,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+    
