@@ -285,17 +285,17 @@ export default function DashboardPage() {
               {pastEvents.length > 0 ? (
                 pastEvents.map(event => (
                   <Card key={event.id} className="bg-black/30 border-white/10 text-white backdrop-blur-sm relative">
-                    {event.requiredXp && event.requiredXp > 0 && (
-                        <Badge variant="outline" className="absolute top-2 left-2 text-blue-300 border-blue-300/50 bg-black/50 flex items-center gap-1.5">
-                            <Zap className="h-3 w-3"/>{event.requiredXp}
-                        </Badge>
-                     )}
                     <CardHeader className="p-4">
                       <CardTitle className="flex justify-between items-center">
-                        <div className="flex flex-col">
-                            <span>{event.name}</span>
+                        <span>{event.name}</span>
+                        <div className="flex items-center gap-2">
+                            {event.requiredXp && event.requiredXp > 0 && (
+                                <Badge variant="outline" className="text-yellow-300 border-yellow-300/50 bg-black/50 flex items-center gap-1.5">
+                                    <Zap className="h-3 w-3"/>{event.requiredXp}
+                                </Badge>
+                            )}
+                            {getEventStatusBadge(event.id)}
                         </div>
-                        {getEventStatusBadge(event.id)}
                       </CardTitle>
                       <CardDescription className="text-white/60 pt-1">
                         Ended on: {format(new Date(event.endTime), 'Pp')}
