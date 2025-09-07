@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import { determineWinners, registerForEvent } from '../actions';
 import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
 import { useToast } from '@/hooks/use-toast';
-import { RegistrationDialog } from '@/components/lucky-draw/RegistrationDialog';
+import { PendingPaymentDialog } from '@/components/lucky-draw/PendingPaymentDialog';
 
 
 export default function DashboardPage() {
@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
   const [isExitConfirmationDialogOpen, setIsExitConfirmationDialogOpen] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   
   const { toast } = useToast();
   const router = useRouter();
@@ -180,6 +181,14 @@ export default function DashboardPage() {
     });
   }
 
+  const handleJoinEventClick = (event: LuckyEvent) => {
+    if (userData && userData.pendingXpSpend && userData.pendingXpSpend > 0) {
+        setIsPaymentDialogOpen(true);
+    } else {
+        router.push(`/register/${event.id}`);
+    }
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('username');
     localStorage.removeItem('isAdmin');
@@ -217,8 +226,8 @@ export default function DashboardPage() {
     
     if (status === 'unlocked') {
         if (isLive) {
-            // Unlocked and Live -> Join Button (links to register page)
-            return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90 animate-pulse"><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
+            // Unlocked and Live -> Join Button
+            return <Button onClick={() => handleJoinEventClick(event)} size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90 animate-pulse">Join Event <ArrowRight className="ml-2 h-5 w-5" /></Button>;
         }
         // Unlocked and Upcoming -> View Button
         return <Button asChild size="lg" className="w-full font-semibold text-lg bg-blue-600 hover:bg-blue-700"><Link href={`/event/${event.id}`}>View Event <Eye className="ml-2 h-5 w-5" /></Link></Button>;
@@ -230,7 +239,7 @@ export default function DashboardPage() {
     }
 
     if (isLive) {
-       return <Button asChild size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90"><Link href={`/register/${event.id}`}>Join Event <ArrowRight className="ml-2 h-5 w-5" /></Link></Button>;
+       return <Button onClick={() => handleJoinEventClick(event)} size="lg" className="w-full font-semibold text-lg bg-accent hover:bg-accent/90">Join Event <ArrowRight className="ml-2 h-5 w-5" /></Button>;
     }
 
     return <Button asChild size="lg" className="w-full font-semibold text-lg" disabled><Link href={`/event/${event.id}`}>View Event</Link></Button>;
@@ -392,6 +401,10 @@ export default function DashboardPage() {
             onOpenChange={setIsExitConfirmationDialogOpen}
             onConfirm={handleExitConfirm}
             onCancel={handleExitCancel}
+        />
+         <PendingPaymentDialog
+            open={isPaymentDialogOpen}
+            onOpenChange={setIsPaymentDialogOpen}
         />
       </div>
     </div>
