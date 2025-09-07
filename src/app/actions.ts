@@ -69,6 +69,80 @@ export async function determineWinners(eventId: string): Promise<LuckyEvent> {
   }
 }
 
+export async function registerForEvent(eventId: string, username: string): Promise<{success: boolean, message: string}> {
+    const eventRef = ref(db, `events/${eventId}`);
+    const eventSnapshot = await get(eventRef);
+    if (!eventSnapshot.exists()) {
+        return { success: false, message: "Event not found." };
+    }
+    const event: LuckyEvent = eventSnapshot.val();
+
+    if (Date.now() > event.endTime) {
+        return { success: false, message: "Registration for this event has ended." };
+    }
+
+    const userPushId = await createUserIfNotExists(username);
+    const userRef = ref(db, `users/${userPushId}`);
+    const userSnapshot = await get(userRef);
+    if (!userSnapshot.exists()) {
+        return { success: false, message: "User not found." };
+    }
+    const userData: UserData = userSnapshot.val();
+
+    // Check if already registered
+    const registeredUsers = event.registeredUsers || {};
+    if (Object.values(registeredUsers).includes(username)) {
+        return { success: true, message: "You are already registered for this event." };
+    }
+
+    const requiredXp = event.requiredXp || 0;
+    if (requiredXp > 0) {
+        if (userData.xp < requiredXp) {
+            return { success: false, message: `You need at least ${requiredXp} XP to unlock this event. You have ${userData.xp} XP.`};
+        }
+        const currentPending = userData.pendingXpSpend || 0;
+        await update(userRef, { pendingXpSpend: currentPending + requiredXp });
+    }
+    
+    // Add user to the event's registered users list
+    const eventUserRef = push(ref(db, `events/${eventId}/registeredUsers`));
+    await set(eventUserRef, username);
+
+    return { success: true, message: requiredXp > 0 ? 'Successfully Unlocked Event! Go to settings to pay.' : 'Successfully registered for the event!' };
+}
+
+export async function payPendingXp(username: string): Promise<{success: boolean, message: string}> {
+    const userPushId = await createUserIfNotExists(username);
+    const userRef = ref(db, `users/${userPushId}`);
+    
+    return runTransaction(userRef, (user: UserData | null) => {
+        if (user) {
+            const pendingSpend = user.pendingXpSpend || 0;
+            if (pendingSpend === 0) {
+                // No need to do anything if there's no pending spend
+                return user;
+            }
+            if (user.xp < pendingSpend) {
+                // This case should ideally be prevented by client-side checks, but as a safeguard:
+                // We don't complete the transaction by returning undefined.
+                return;
+            }
+            user.xp -= pendingSpend;
+            user.pendingXpSpend = 0;
+        }
+        return user;
+    }).then((result) => {
+        if (result.committed) {
+            return { success: true, message: 'Payment successful! Your XP balance has been updated.' };
+        } else {
+            return { success: false, message: 'Payment failed. You may not have enough XP.' };
+        }
+    }).catch((error) => {
+        console.error("Transaction failed: ", error);
+        return { success: false, message: 'An error occurred during payment.' };
+    });
+}
+
 
 export async function deleteEvent(eventId: string): Promise<void> {
     const eventRef = ref(db, `events/${eventId}`);

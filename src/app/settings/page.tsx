@@ -7,14 +7,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Bell, Lock, Film } from 'lucide-react';
+import { ArrowLeft, Bell, Lock, Film, Wallet, Zap, Loader2 } from 'lucide-react';
 import { getMessagingToken } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { onValue, ref } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import type { UserData } from '@/types';
+import { payPendingXp } from '@/app/actions';
 
 export default function SettingsPage() {
   const [playAnimation, setPlayAnimation] = useState(true);
   const [usePersonalData, setUsePersonalData] = useState(true);
   const [notificationStatus, setNotificationStatus] = useState<'default' | 'granted' | 'denied'>('default');
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [isPaying, setIsPaying] = useState(false);
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -23,14 +30,28 @@ export default function SettingsPage() {
     if (animationSetting !== null) {
       setPlayAnimation(animationSetting === 'true');
     } else {
-      // Default to true if not set
       localStorage.setItem('playResultAnimation', 'true');
     }
 
-    // Check current notification permission status
     if ('Notification' in window) {
       setNotificationStatus(Notification.permission);
     }
+    
+    const username = localStorage.getItem('username');
+    if(username) {
+        const usersRef = ref(db, 'users');
+        const unsubscribe = onValue(usersRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const users = snapshot.val();
+                const userEntry = Object.values(users).find((user: any) => user.username === username) as UserData | undefined;
+                if (userEntry) {
+                    setUserData(userEntry);
+                }
+            }
+        });
+        return () => unsubscribe();
+    }
+
   }, []);
 
   const handleAnimationChange = (checked: boolean) => {
@@ -52,8 +73,6 @@ export default function SettingsPage() {
 
   const handleNotificationChange = async (checked: boolean) => {
     if (!checked) {
-      // Note: We can't programmatically revoke notification permissions.
-      // We can only guide the user to do it in their browser settings.
       toast({
         title: 'Manage Notifications',
         description: 'Please manage notification permissions in your browser settings.',
@@ -75,7 +94,6 @@ export default function SettingsPage() {
         return;
     }
     
-    // Request permission
     const token = await getMessagingToken();
     if(token) {
         setNotificationStatus('granted');
@@ -86,6 +104,18 @@ export default function SettingsPage() {
     }
   };
 
+  const handlePay = async () => {
+      if (!userData || !userData.username) return;
+
+      setIsPaying(true);
+      const result = await payPendingXp(userData.username);
+      if (result.success) {
+          toast({ title: 'Success', description: result.message });
+      } else {
+          toast({ title: 'Payment Failed', description: result.message, variant: 'destructive'});
+      }
+      setIsPaying(false);
+  }
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-muted/40 p-4">
@@ -102,6 +132,39 @@ export default function SettingsPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3"><Wallet/> Spend XP</CardTitle>
+                <CardDescription>Pay for unlocked events from your XP balance.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {userData ? (
+                    <>
+                        <div className="flex justify-between items-center text-sm p-3 bg-muted rounded-md">
+                            <span>Pending to Spend</span>
+                            <span className="font-bold flex items-center gap-1 text-yellow-400"><Zap className="h-4 w-4"/> {userData?.pendingXpSpend || 0}</span>
+                        </div>
+                         <div className="flex justify-between items-center text-sm p-3 bg-muted rounded-md">
+                            <span>Your Current Balance</span>
+                            <span className="font-bold flex items-center gap-1 text-blue-400"><Zap className="h-4 w-4"/> {userData?.xp || 0}</span>
+                        </div>
+                        <Button 
+                            className="w-full" 
+                            onClick={handlePay}
+                            disabled={!userData.pendingXpSpend || userData.pendingXpSpend === 0 || isPaying || userData.xp < (userData.pendingXpSpend || 0)}
+                        >
+                            {isPaying ? <Loader2 className="animate-spin" /> : `Pay ${userData.pendingXpSpend || 0} XP`}
+                        </Button>
+                        {userData.pendingXpSpend && userData.xp < userData.pendingXpSpend && (
+                            <p className="text-xs text-destructive text-center">You don't have enough XP to pay.</p>
+                        )}
+                    </>
+                ) : (
+                    <div className="flex justify-center items-center p-4"> <Loader2 className="h-6 w-6 animate-spin"/></div>
+                )}
+            </CardContent>
+          </Card>
+        
           <div className="flex items-center justify-between p-4 rounded-lg border">
             <Label htmlFor="animation-switch" className="flex items-center gap-3 cursor-pointer">
               <Film className="h-5 w-5" />
@@ -152,5 +215,3 @@ export default function SettingsPage() {
     </main>
   );
 }
-
-    
