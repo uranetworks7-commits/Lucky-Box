@@ -19,6 +19,7 @@ import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmation
 import { useToast } from '@/hooks/use-toast';
 import { PendingPaymentDialog } from '@/components/lucky-draw/PendingPaymentDialog';
 
+const PAST_EVENTS_LIMIT = 4;
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string | null>(null);
@@ -250,6 +251,8 @@ export default function DashboardPage() {
   const upcomingEvents = events.filter(e => e.endTime > now);
   const pastEvents = events.filter(e => e.endTime <= now).sort((a, b) => b.resultTime - a.resultTime);
 
+  const displayedPastEvents = pastEvents.slice(0, PAST_EVENTS_LIMIT);
+
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://i.postimg.cc/7Yf8zfPQ/fhdnature3648.jpg')" }}>
       <div className="min-h-screen bg-black/60 p-4 sm:p-6 md:p-8">
@@ -343,16 +346,23 @@ export default function DashboardPage() {
                 <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
                     <History className="h-7 w-7"/> Past Events
                 </h2>
-                <Button asChild className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-bold shadow-lg hover:shadow-xl transition-shadow">
-                    <Link href="/activities">
-                        <Zap className="mr-2 h-5 w-5"/>
-                        Get XP
-                    </Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                    {pastEvents.length > PAST_EVENTS_LIMIT && (
+                        <Button asChild variant="outline" className="bg-transparent text-white border-white/50 hover:bg-white/10 hover:text-white">
+                            <Link href="/history">View All</Link>
+                        </Button>
+                    )}
+                    <Button asChild className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-bold shadow-lg hover:shadow-xl transition-shadow">
+                        <Link href="/activities">
+                            <Zap className="mr-2 h-5 w-5"/>
+                            Get XP
+                        </Link>
+                    </Button>
+                </div>
             </div>
             <div className="grid gap-6 md:grid-cols-2">
-              {pastEvents.length > 0 ? (
-                pastEvents.map(event => (
+              {displayedPastEvents.length > 0 ? (
+                displayedPastEvents.map(event => (
                   <Card key={event.id} className="bg-black/30 border-white/10 text-white backdrop-blur-sm relative">
                     <CardHeader className="p-4">
                       <CardTitle className="flex justify-between items-center">
@@ -410,5 +420,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
