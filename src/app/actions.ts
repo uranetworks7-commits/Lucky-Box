@@ -2,7 +2,7 @@
 'use server';
 
 import { assignWinnerCode, type AssignWinnerCodeInput } from '@/ai/flows/assign-winner-code';
-import { get, ref, remove, runTransaction, update, push } from 'firebase/database';
+import { get, ref, remove, runTransaction, update, push, set } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import type { LuckyEvent, QuizOrPoll, UserData } from '@/types';
 import { createUserIfNotExists } from '@/lib/firebase';
