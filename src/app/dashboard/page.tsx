@@ -15,7 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { determineWinners, registerForEvent } from '../actions';
-import { ExitConfirmationDialog } from '@/components/lucky-draw/ExitConfirmationDialog';
 import { useToast } from '@/hooks/use-toast';
 import { PendingPaymentDialog } from '@/components/lucky-draw/PendingPaymentDialog';
 
@@ -29,7 +28,6 @@ export default function DashboardPage() {
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
-  const [isExitConfirmationDialogOpen, setIsExitConfirmationDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   
   const { toast } = useToast();
@@ -43,20 +41,6 @@ export default function DashboardPage() {
       setUsername(storedUsername);
     }
   }, [router]);
-
-  const handleBackButton = useCallback((event: PopStateEvent) => {
-    event.preventDefault();
-    setIsExitConfirmationDialogOpen(true);
-  }, []);
-
-  useEffect(() => {
-    history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', handleBackButton);
-
-    return () => {
-      window.removeEventListener('popstate', handleBackButton);
-    };
-  }, [handleBackButton]);
   
   const updateEvents = useCallback((data: any, currentUserData: UserData | null) => {
     if (data && currentUserData?.username) {
@@ -194,15 +178,6 @@ export default function DashboardPage() {
     localStorage.removeItem('username');
     localStorage.removeItem('isAdmin');
     router.push('/');
-  };
-
-  const handleExitConfirm = () => {
-    router.replace('/');
-  };
-
-  const handleExitCancel = () => {
-    history.pushState(null, '', window.location.href);
-    setIsExitConfirmationDialogOpen(false);
   };
 
   const getEventStatusBadge = (eventId: string) => {
@@ -406,12 +381,6 @@ export default function DashboardPage() {
         </div>
         
         <AdminAccessDialog open={isAdminDialogOpen} onOpenChange={setIsAdminDialogOpen} />
-        <ExitConfirmationDialog 
-            open={isExitConfirmationDialogOpen} 
-            onOpenChange={setIsExitConfirmationDialogOpen}
-            onConfirm={handleExitConfirm}
-            onCancel={handleExitCancel}
-        />
          <PendingPaymentDialog
             open={isPaymentDialogOpen}
             onOpenChange={setIsPaymentDialogOpen}
