@@ -58,6 +58,9 @@ export function RegistrationDialog({ open, onOpenChange, event }: RegistrationDi
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-black border-gray-800 text-white p-0">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Registering for event</DialogTitle>
+          </DialogHeader>
           <div className="w-full max-w-4xl p-4">
              {isRegistering || !registrationResult ? (
                 <div className="h-64 flex items-center justify-center">
